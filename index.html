@@ -3,12 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RideShare الجامعات - Ultimate Premium</title>
-
+<title>Yahia RideShare - المجموعات</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-
 <style>
 body {
     font-family:'Cairo',sans-serif;
@@ -23,7 +19,6 @@ header {
     padding:1rem;
     text-align:center;
 }
-header h2 { font-size:0.95rem; font-weight:normal; opacity:0.85; margin:0.3rem 0 0; }
 .container {
     max-width: 750px;
     margin: 2rem auto;
@@ -49,63 +44,51 @@ button {
     border:none;
     font-weight:bold;
     cursor:pointer;
-    margin-top:5px;
     transition:background .2s;
 }
 button:hover { background:#333; }
 button:disabled { opacity:0.5; cursor:not-allowed; }
-.ride {
+.request {
     border:1px solid #ddd;
     padding:1rem;
     margin:1rem 0;
     border-radius:12px;
     background:rgba(255,255,255,0.95);
     color:#111;
-    position:relative;
 }
 .badge {
-    position:absolute;
-    top:10px;
-    left:10px;
-    color:white;
+    display:inline-block;
+    background:#e8f5e9;
+    color:#2e7d32;
     padding:0.3rem 0.6rem;
     border-radius:5px;
     font-size:0.8rem;
-    text-align:center;
+    margin-bottom:0.5rem;
 }
-.badge.to_university { background:#3498db; }
-.badge.from_university { background:#e74c3c; }
-
-#mapSelector { height:200px; border-radius:10px; margin-top:10px; display:none; }
-.status { text-align:center; padding:1rem; opacity:0.7; font-size:0.9rem; }
 .topbar { display:flex; justify-content:space-between; align-items:center; }
 .topbar button { width:auto; padding:0.5rem 1rem; margin:0; }
+.status { text-align:center; padding:1rem; opacity:0.7; font-size:0.9rem; }
 </style>
 </head>
-
 <body>
 <header>
-<h1>Yahia RideShare</h1>
-<h2>go to your university with good price and on the good time</h2>
+<h1>Yahia RideShare - المجموعات</h1>
+<h2>انظم مجموعتك أو اسأل عن رحلة</h2>
 </header>
 
+<!-- نافذة التسجيل -->
 <div class="container" id="authDiv">
-<h2>Yahia RideShare</h2>
-
-<!-- Toggle بين Sign Up و Login -->
 <div style="display: flex; gap: 10px; margin-bottom: 1.5rem;">
   <button onclick="toggleAuthMode('signup')" id="signupBtn" style="flex: 1; background: #111;">إنشاء حساب</button>
   <button onclick="toggleAuthMode('login')" id="loginBtn" style="flex: 1; background: #666;">دخول</button>
 </div>
 
-<!-- نافذة Sign Up (مرئية في البداية) -->
 <div id="signupForm">
   <input id="signupName" placeholder="الاسم الكامل">
   <input id="signupPhone" placeholder="رقم الهاتف (10-12 رقم)">
   <input id="signupEmail" type="email" placeholder="البريد الإلكتروني">
   <input id="signupPassword" type="password" placeholder="كلمة السر (6 أحرف على الأقل)">
   <input id="signupPasswordConfirm" type="password" placeholder="تأكيد كلمة السر">
-  
   <div style="margin: 1rem 0;">
     <label style="display: block; margin-bottom: 0.5rem;">
       <input type="radio" name="role" value="سائق" checked> أنا سائق
@@ -114,94 +97,65 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
       <input type="radio" name="role" value="راكب"> أنا راكب
     </label>
   </div>
-  
   <button onclick="handleSignUp()">إنشاء الحساب</button>
   <p id="signupError" style="color: #e74c3c; font-size: 12px; margin-top: 0.5rem;"></p>
 </div>
 
-<!-- نافذة Login (مخفية في البداية) -->
 <div id="loginForm" style="display: none;">
   <input id="loginEmail" type="email" placeholder="البريد الإلكتروني">
   <input id="loginPassword" type="password" placeholder="كلمة السر">
   <button onclick="handleLogin()">دخول</button>
   <p id="loginError" style="color: #e74c3c; font-size: 12px; margin-top: 0.5rem;"></p>
 </div>
-
-<div id="authStatus" class="status">جارِ الاتصال بالخادم...</div>
 </div>
 
+<!-- التطبيق الرئيسي -->
 <div class="container" id="appDiv" style="display:none">
 <div class="topbar">
   <h3>مرحباً <span id="userName"></span> - <span id="userRole"></span></h3>
   <button onclick="logout()">خروج</button>
 </div>
 
+<!-- قسم الراكب: طلب رحلة -->
+<div id="passengerSection" style="display:none">
+<h4>🆕 أطلب رحلة مجموعية</h4>
+<input id="reqName" placeholder="اسم المجموعة (اختياري)">
+<select id="reqUniversity">
+  <option value="">اختر الجامعة</option>
+  <option>جامعة باجي مختار – سيدي عمار</option>
+  <option>جامعة باجي مختار – البوني</option>
+  <option>جامعة باجي مختار – سيدي عاشور</option>
+  <option>كلية الطب – كوبا</option>
+  <option>المدرسة العليا للتكنولوجيا – سيدي عمار</option>
+  <option>المدرسة العليا لعلوم التسيير – عنابة</option>
+  <option>المدرسة العليا للأساتذة – عنابة</option>
+</select>
+<input type="date" id="reqDay">
+<input type="time" id="reqTime">
+<input type="number" id="reqSeats" placeholder="عدد المقاعد المطلوبة (3-7)" min="3" max="7" value="3">
+<button onclick="getLocationForRequest()">📍 جلب موقعي</button>
+<p id="locationStatus" style="font-size: 12px; opacity: 0.8;"></p>
+<button onclick="createRideRequest()">إنشاء طلب رحلة</button>
+</div>
+
+<!-- قسم السائق: قبول المجموعات -->
 <div id="driverSection" style="display:none">
-<h4>إضافة رحلة جديدة</h4>
-<select id="direction">
-  <option value="to_university">إلى الجامعة</option>
-  <option value="from_university">العودة إلى المنزل</option>
-</select>
-
-<input id="from" placeholder="من (اكتب أو اختر من الخريطة)">
-<select id="to">
-<option value="">اختر الجامعة</option>
-<option>جامعة باجي مختار – سيدي عمار</option>
-<option>جامعة باجي مختار – البوني</option>
-<option>جامعة باجي مختار – سيدي عاشور</option>
-<option>كلية الطب – كوبا</option>
-<option>المدرسة العليا للتكنولوجيا – سيدي عمار</option>
-<option>المدرسة العليا لعلوم التسيير – عنابة</option>
-<option>المدرسة العليا للأساتذة – عنابة</option>
-</select>
-<input type="date" id="day">
-<input type="time" id="time">
-<select id="seats">
-<option value="2">2 مقاعد</option>
-<option value="3">3 مقاعد</option>
-</select>
-<input type="number" id="price" placeholder="السعر الكلي (مثال 600)">
-<button onclick="toggleMap()">📍 اختيار الموقع</button>
-<div id="mapSelector"></div>
-<button id="addRideBtn" onclick="addRide()">إضافة الرحلة</button>
+<h4>🚗 قبول مجموعات</h4>
+<p style="opacity: 0.8;">اختر مجموعة واقبل الرحلة:</p>
 </div>
 
-<!-- قسم الفلتر (للراكب فقط) -->
-<div id="filterSection" style="display:none; background: rgba(255,255,255,0.06); backdrop-filter: blur(6px); padding: 1.5rem; border-radius: 12px; margin: 2rem auto; max-width: 750px;">
-  <h4 style="margin-top: 0; color: white;">فلتر الرحلات حسب المسافة</h4>
-  
-  <button onclick="getLocation()" style="background: #3498db; margin-bottom: 1rem; color: white;">
-    📍 جلب موقعي الحالي
-  </button>
-  
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-    <button onclick="setDistance(10)" id="dist10" style="background: #666; color: white; font-size: 12px;">10 متر</button>
-    <button onclick="setDistance(50)" id="dist50" style="background: #666; color: white; font-size: 12px;">50 متر</button>
-    <button onclick="setDistance(100)" id="dist100" style="background: #111; color: white; font-size: 12px;">100 متر</button>
-    <button onclick="setDistance(1000)" id="dist1000" style="background: #666; color: white; font-size: 12px;">1 كيلومتر</button>
-  </div>
+<!-- المجموعات المتاحة -->
+<h3>المجموعات المتاحة</h3>
+<div id="ridesStatus" class="status" style="display:none">جارِ تحميل المجموعات...</div>
+<div id="requestsList"></div>
 </div>
 
-<div class="container">
-<h3>الرحلات المتاحة</h3>
-<div id="ridesStatus" class="status" style="display:none">جارِ تحميل الرحلات...</div>
-<div id="ridesList"></div>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
-
-<!-- Firebase SDK (compat build = simplest syntax, works everywhere) -->
+<!-- Firebase & Leaflet -->
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 
 <script>
-/* =========================================================
-   1) FIREBASE CONFIG
-   -> بدّل هذي القيم بالقيم متاعك من Firebase Console:
-      Project settings > General > Your apps > SDK setup and configuration
-   ========================================================= */
 const firebaseConfig = {
   apiKey: "AIzaSyA0qYadPTlDwKiOmDUQlvzj0Dpm8tsLwMU",
   authDomain: "yahia-rideshare.firebaseapp.com",
@@ -215,67 +169,32 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// كل مستخدم يدخل بدون حساب (anonymous auth) باش نقدر نربط
-// كل رحلة/حجز بمعرف فريد وآمن (uid) بدل نعتمد غير على الاسم
-let currentUid = null;
-
-
-
-/* =========================================================
-   2) STATE
-   ========================================================= */
 let currentUser, currentRole;
-let rides = [];              // نسخة محلية محدثة تلقائياً من Firestore
-let unsubscribeRides = null; // للتوقف عن الاستماع عند logout
-let selectedPoint = null;
-let userLocation = null;     // موقع المستخدم الحالي
-let selectedDistance = 100;  // المسافة المختارة (متر) - افتراضياً 100م
-let isLoadingLocation = false; // للتحقق من جلب الموقع
+let rideRequests = [];
+let unsubscribeRequests = null;
+let userLocation = null;
 
-const nameInput = document.getElementById('name');
-const phoneInput = document.getElementById('phone');
-const directionInput = document.getElementById('direction');
-const fromInput = document.getElementById('from');
-const toInput = document.getElementById('to');
-const dayInput = document.getElementById('day');
-const timeInput = document.getElementById('time');
-const seatsInput = document.getElementById('seats');
-const priceInput = document.getElementById('price');
-const ridesList = document.getElementById('ridesList');
-const ridesStatus = document.getElementById('ridesStatus');
+const requestsList = document.getElementById('requestsList');
 const driverSection = document.getElementById('driverSection');
-const authStatus = document.getElementById('authStatus');
-const addRideBtn = document.getElementById('addRideBtn');
+const passengerSection = document.getElementById('passengerSection');
+const ridesStatus = document.getElementById('ridesStatus');
 
-const universityCoords = {
-"جامعة باجي مختار – سيدي عمار":[36.879,7.725],
-"جامعة باجي مختار – البوني":[36.871,7.755],
-"جامعة باجي مختار – سيدي عاشور":[36.900,7.780],
-"كلية الطب – كوبا":[36.902,7.763],
-"المدرسة العليا للتكنولوجيا – سيدي عمار":[36.875,7.720],
-"المدرسة العليا لعلوم التسيير – عنابة":[36.895,7.740],
-"المدرسة العليا للأساتذة – عنابة":[36.890,7.750]
+const universities = {
+  "جامعة باجي مختار – سيدي عمار": [36.879, 7.725],
+  "جامعة باجي مختار – البوني": [36.871, 7.755],
+  "جامعة باجي مختار – سيدي عاشور": [36.900, 7.780],
+  "كلية الطب – كوبا": [36.902, 7.763],
+  "المدرسة العليا للتكنولوجيا – سيدي عمار": [36.875, 7.720],
+  "المدرسة العليا لعلوم التسيير – عنابة": [36.895, 7.740],
+  "المدرسة العليا للأساتذة – عنابة": [36.890, 7.750]
 };
 
-/* =========================================================
-   3) AUTH - دخول مجهول تلقائي عند فتح الصفحة
-   ========================================================= */
-/* =========================================================
-   AUTH SYSTEM - Email/Password
-   ========================================================= */
-
+// ============ AUTH ============
 function toggleAuthMode(mode) {
-    if (mode === 'signup') {
-        document.getElementById('signupForm').style.display = 'block';
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('signupBtn').style.background = '#111';
-        document.getElementById('loginBtn').style.background = '#666';
-    } else {
-        document.getElementById('signupForm').style.display = 'none';
-        document.getElementById('loginForm').style.display = 'block';
-        document.getElementById('loginBtn').style.background = '#111';
-        document.getElementById('signupBtn').style.background = '#666';
-    }
+    document.getElementById('signupForm').style.display = mode === 'signup' ? 'block' : 'none';
+    document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+    document.getElementById('signupBtn').style.background = mode === 'signup' ? '#111' : '#666';
+    document.getElementById('loginBtn').style.background = mode === 'login' ? '#111' : '#666';
 }
 
 async function handleSignUp() {
@@ -331,8 +250,9 @@ async function handleSignUp() {
         document.getElementById('userRole').textContent = role;
         
         if (role === 'سائق') driverSection.style.display = 'block';
+        else passengerSection.style.display = 'block';
         
-        listenToRides();
+        listenToRequests();
     } catch (error) {
         errorEl.textContent = 'خطأ: ' + error.message;
     }
@@ -366,11 +286,24 @@ async function handleLogin() {
         document.getElementById('userRole').textContent = userData.role;
         
         if (userData.role === 'سائق') driverSection.style.display = 'block';
+        else passengerSection.style.display = 'block';
         
-        listenToRides();
+        listenToRequests();
     } catch (error) {
         errorEl.textContent = 'خطأ: ' + error.message;
     }
+}
+
+async function logout(){
+    await auth.signOut();
+    currentUser = null;
+    currentRole = null;
+    
+    document.getElementById('appDiv').style.display = 'none';
+    document.getElementById('authDiv').style.display = 'block';
+    
+    if (unsubscribeRequests) unsubscribeRequests();
+    requestsList.innerHTML = '';
 }
 
 auth.onAuthStateChanged(user => {
@@ -387,8 +320,9 @@ auth.onAuthStateChanged(user => {
                 document.getElementById('userRole').textContent = userData.role;
                 
                 if (userData.role === 'سائق') driverSection.style.display = 'block';
+                else passengerSection.style.display = 'block';
                 
-                listenToRides();
+                listenToRequests();
             }
         });
     } else {
@@ -397,47 +331,8 @@ auth.onAuthStateChanged(user => {
     }
 });
 
-/* =========================================================
-   4) MAP SELECTOR
-   ========================================================= */
-const mapSelector = L.map('mapSelector').setView([36.89,7.75],13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(mapSelector);
-let marker = null;
-
-mapSelector.on('click', async e => {
-    selectedPoint = [e.latlng.lat, e.latlng.lng];
-    try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${selectedPoint[0]}&lon=${selectedPoint[1]}`);
-        const data = await res.json();
-        fromInput.value = data.display_name || "موقع مختار";
-    } catch (err) {
-        fromInput.value = "موقع مختار";
-    }
-    if (marker) mapSelector.removeLayer(marker);
-    marker = L.marker(selectedPoint).addTo(mapSelector).bindPopup('نقطة الانطلاق').openPopup();
-});
-
-/* =========================================================
-   LOCATION AND DISTANCE FUNCTIONS
-   ========================================================= */
-
-// حساب المسافة بين نقطتين (بالمتر)
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371000; // نصف قطر الأرض بالمتر
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; // المسافة بالمتر
-}
-
-// جلب موقع المستخدم الحالي
-function getLocation() {
-    isLoadingLocation = true;
-    
+// ============ LOCATION ============
+function getLocationForRequest() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             position => {
@@ -445,302 +340,214 @@ function getLocation() {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
                 };
-                isLoadingLocation = false;
-                renderRides();  // تحديث الرحلات
-                alert('تم جلب الموقع بنجاح');
+                document.getElementById('locationStatus').textContent = '✅ تم جلب الموقع';
             },
             error => {
-                isLoadingLocation = false;
                 alert('خطأ في جلب الموقع: ' + error.message);
             }
         );
     } else {
         alert('متصفحك لا يدعم الموقع الجغرافي');
-        isLoadingLocation = false;
     }
 }
 
-// تبديل المسافة المختارة
-function setDistance(distance) {
-    selectedDistance = distance;
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+// ============ RIDE REQUESTS ============
+async function createRideRequest() {
+    const name = document.getElementById('reqName').value.trim() || 'بدون اسم';
+    const university = document.getElementById('reqUniversity').value;
+    const day = document.getElementById('reqDay').value;
+    const time = document.getElementById('reqTime').value;
+    const seats = parseInt(document.getElementById('reqSeats').value);
     
-    // تحديث أزرار الفلتر
-    document.getElementById('dist10').style.background = distance === 10 ? '#111' : '#666';
-    document.getElementById('dist50').style.background = distance === 50 ? '#111' : '#666';
-    document.getElementById('dist100').style.background = distance === 100 ? '#111' : '#666';
-    document.getElementById('dist1000').style.background = distance === 1000 ? '#111' : '#666';
-    
-    renderRides();  // إعادة عرض الرحلات
-}
-
-function toggleMap(){
-    const m = document.getElementById('mapSelector');
-    m.style.display = m.style.display === 'none' ? 'block' : 'none';
-    if (m.style.display === 'block') setTimeout(() => mapSelector.invalidateSize(), 200);
-}
-
-/* =========================================================
-   LOGOUT FUNCTION
-   ========================================================= */
-async function logout(){
-    await auth.signOut();
-    currentUser = null;
-    currentRole = null;
-    
-    document.getElementById('appDiv').style.display = 'none';
-    document.getElementById('authDiv').style.display = 'block';
-    
-    document.getElementById('loginEmail').value = '';
-    document.getElementById('loginPassword').value = '';
-    document.getElementById('signupName').value = '';
-    document.getElementById('signupPhone').value = '';
-    document.getElementById('signupEmail').value = '';
-    document.getElementById('signupPassword').value = '';
-    document.getElementById('signupPasswordConfirm').value = '';
-    
-    if (unsubscribeRides) unsubscribeRides();
-    ridesList.innerHTML = '';
-}
-
-/* =========================================================
-   6) FIRESTORE: إضافة رحلة
-   ========================================================= */
-async function addRide(){
-    const direction = directionInput.value;
-    const from = fromInput.value.trim();
-    const to = toInput.value;
-    const day = dayInput.value;
-    const time = timeInput.value;
-    const seats = parseInt(seatsInput.value);
-    const price = parseInt(priceInput.value);
-
-    if (!from || !to || !day || !time || !price) return alert('أكمل الحقول');
-
-    // الرحلة لازم تكون فـ المستقبل
-    const rideDateTime = new Date(`${day}T${time}`);
-    if (rideDateTime < new Date()) return alert('لا يمكن إضافة رحلة بتاريخ ماضٍ');
-
-    let fromCoords, toCoords;
-    if (direction === 'to_university'){
-        fromCoords = selectedPoint || [36.89,7.75];
-        toCoords = universityCoords[to];
-    } else {
-        fromCoords = universityCoords[to];
-        toCoords = selectedPoint || [36.89,7.75];
-    }
-
-    const ride = {
-        driverUid: currentUser.uid,
-        driver: currentUser.name,
-        phone: currentUser.phone,
-        direction,
-        from: direction === 'to_university' ? from : to,
-        to: direction === 'to_university' ? to : from,
-        day,
-        time,
-        rideTimestamp: firebase.firestore.Timestamp.fromDate(rideDateTime),
-        seats,
-        seatPrice: Math.round(price / seats),
-        passengers: [],
-        fromCoords,
-        toCoords,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-
-    addRideBtn.disabled = true;
-    try {
-        await db.collection('rides').add(ride);
-        alert('تمت إضافة الرحلة');
-        fromInput.value = ''; priceInput.value = '';
-    } catch (err) {
-        alert('خطأ أثناء إضافة الرحلة: ' + err.message);
-    } finally {
-        addRideBtn.disabled = false;
-    }
-}
-
-/* =========================================================
-   7) FIRESTORE: حجز مقعد
-   نستعمل transaction باش نتفادى تعارض حجزين فنفس اللحظة (race condition)
-   ========================================================= */
-async function bookRide(rideId){
-    const rideRef = db.collection('rides').doc(rideId);
-    try {
-        await db.runTransaction(async (t) => {
-            const doc = await t.get(rideRef);
-            if (!doc.exists) throw new Error('الرحلة لم تعد متاحة');
-            const r = doc.data();
-
-            if (r.passengers.some(p => p.uid === currentUser.uid)) {
-                throw new Error('لقد حجزت هذه الرحلة مسبقاً');
-            }
-            if (r.passengers.length >= r.seats) {
-                throw new Error('لا مقاعد متبقية');
-            }
-            const updatedPassengers = [...r.passengers, {
-                uid: currentUser.uid, name: currentUser.name, phone: currentUser.phone
-            }];
-            t.update(rideRef, {passengers: updatedPassengers});
-        });
-    } catch (err) {
-        alert(err.message);
-    }
-}
-
-async function deleteRide(rideId){
-    if (!confirm('هل تريد حذف هذه الرحلة؟')) return;
-    try {
-        await db.collection('rides').doc(rideId).delete();
-    } catch (err) {
-        alert('خطأ أثناء الحذف: ' + err.message);
-    }
-}
-
-/* =========================================================
-   8) الاستماع للرحلات في الوقت الحقيقي (real-time)
-   بدل ما نقرا مرة وحدة من localStorage، هنا كل تغيير
-   (رحلة جديدة، حجز، حذف) يوصل تلقائياً لكل المستخدمين.
-   ========================================================= */
-function listenToRides(){
-    ridesStatus.style.display = 'block';
-
-    const now = firebase.firestore.Timestamp.fromDate(new Date());
-    let query = db.collection('rides').where('rideTimestamp', '>=', now).orderBy('rideTimestamp');
-
-    if (currentRole === 'سائق') {
-        query = query.where('driverUid', '==', currentUser.uid);
-    }
-
-    unsubscribeRides = query.onSnapshot(snapshot => {
-        ridesStatus.style.display = 'none';
-        rides = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
-        renderRides();
-    }, err => {
-        ridesStatus.textContent = 'خطأ أثناء تحميل الرحلات: ' + err.message;
-    });
-}
-
-/* =========================================================
-   9) العرض
-   ========================================================= */
-function renderRides(){
-    ridesList.innerHTML = '';
-    
-    // إظهار قسم الفلتر للراكب فقط
-    if (currentRole === 'راكب') {
-        document.getElementById('filterSection').style.display = 'block';
-    } else {
-        document.getElementById('filterSection').style.display = 'none';
-    }
-
-    let visibleRides = rides.filter((r) => {
-        if(currentRole === 'سائق'){
-            return r.driverUid === currentUser.uid;
-        }
-        return true;
-    });
-    
-    // تطبيق فلتر المسافة للراكب
-    if (currentRole === 'راكب' && userLocation) {
-        visibleRides = visibleRides.filter((r) => {
-            const distance = calculateDistance(
-                userLocation.lat, 
-                userLocation.lng,
-                r.fromCoords[0],
-                r.fromCoords[1]
-            );
-            return distance <= selectedDistance;
-        });
-    }
-
-    if (visibleRides.length === 0){
-        ridesList.innerHTML = '<p class="status">لا توجد رحلات متاحة حالياً</p>';
+    if (!university || !day || !time) {
+        alert('أكمل جميع الحقول');
         return;
     }
 
-    visibleRides.forEach(r => {
-        const left = r.seats - r.passengers.length;
+    if (!userLocation) {
+        alert('جلب موقعك أولاً');
+        return;
+    }
+
+    const rideDateTime = new Date(`${day}T${time}`);
+    if (rideDateTime < new Date()) {
+        alert('لا يمكن إنشاء طلب بتاريخ ماضٍ');
+        return;
+    }
+
+    try {
+        await db.collection('ride_requests').add({
+            organizerUid: currentUser.uid,
+            organizer: currentUser.name,
+            phone: currentUser.phone,
+            name: name,
+            university: university,
+            day: day,
+            time: time,
+            rideTimestamp: firebase.firestore.Timestamp.fromDate(rideDateTime),
+            seatsNeeded: seats,
+            members: [{ uid: currentUser.uid, name: currentUser.name, phone: currentUser.phone }],
+            location: new firebase.firestore.GeoPoint(userLocation.lat, userLocation.lng),
+            status: 'waiting',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
         
-        // حساب المسافة لعرضها
-        let distanceText = '';
-        if (currentRole === 'راكب' && userLocation) {
-            const distance = calculateDistance(
-                userLocation.lat, 
-                userLocation.lng,
-                r.fromCoords[0],
-                r.fromCoords[1]
-            );
-            if (distance < 1000) {
-                distanceText = `<br><b>المسافة:</b> ${Math.round(distance)} متر`;
-            } else {
-                distanceText = `<br><b>المسافة:</b> ${(distance/1000).toFixed(1)} كم`;
-            }
+        alert('تم إنشاء الطلب بنجاح');
+        document.getElementById('reqName').value = '';
+        document.getElementById('reqUniversity').value = '';
+        document.getElementById('reqDay').value = '';
+        document.getElementById('reqTime').value = '';
+        document.getElementById('reqSeats').value = '3';
+        document.getElementById('locationStatus').textContent = '';
+    } catch (error) {
+        alert('خطأ: ' + error.message);
+    }
+}
+
+async function joinRequest(requestId) {
+    try {
+        const reqRef = db.collection('ride_requests').doc(requestId);
+        const reqDoc = await reqRef.get();
+        const req = reqDoc.data();
+
+        if (req.members.some(m => m.uid === currentUser.uid)) {
+            alert('أنت بالفعل في هذه المجموعة');
+            return;
         }
 
+        if (req.members.length >= req.seatsNeeded) {
+            alert('المجموعة امتلأت');
+            return;
+        }
+
+        await reqRef.update({
+            members: firebase.firestore.FieldValue.arrayUnion({
+                uid: currentUser.uid,
+                name: currentUser.name,
+                phone: currentUser.phone
+            })
+        });
+    } catch (error) {
+        alert('خطأ: ' + error.message);
+    }
+}
+
+async function acceptRequest(requestId, seatsNeeded) {
+    const seatsAvailable = parseInt(prompt(`كم مقعد عندك؟ (المطلوب ${seatsNeeded})`));
+    
+    if (!seatsAvailable || seatsAvailable < seatsNeeded) {
+        alert('عدد المقاعد غير كافي');
+        return;
+    }
+
+    try {
+        await db.collection('ride_requests').doc(requestId).update({
+            status: 'accepted',
+            driverUid: currentUser.uid,
+            driver: currentUser.name,
+            driverPhone: currentUser.phone,
+            seatsAvailable: seatsAvailable
+        });
+    } catch (error) {
+        alert('خطأ: ' + error.message);
+    }
+}
+
+function listenToRequests() {
+    ridesStatus.style.display = 'block';
+
+    const now = firebase.firestore.Timestamp.fromDate(new Date());
+    let query = db.collection('ride_requests').where('rideTimestamp', '>=', now).orderBy('rideTimestamp');
+
+    unsubscribeRequests = query.onSnapshot(snapshot => {
+        ridesStatus.style.display = 'none';
+        rideRequests = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderRequests();
+    });
+}
+
+function renderRequests() {
+    requestsList.innerHTML = '';
+
+    let visibleRequests = rideRequests.filter(r => {
+        if (currentRole === 'سائق') return r.status === 'waiting';
+        if (currentRole === 'راكب' && userLocation) {
+            const distance = calculateDistance(
+                userLocation.lat, userLocation.lng,
+                r.location._lat, r.location._lng
+            );
+            return distance <= 1000; // 1 كم
+        }
+        return true;
+    });
+
+    if (visibleRequests.length === 0) {
+        requestsList.innerHTML = '<p class="status">لا توجد مجموعات متاحة</p>';
+        return;
+    }
+
+    visibleRequests.forEach(r => {
         const div = document.createElement('div');
-        div.className = 'ride';
+        div.className = 'request';
+        
+        const distance = userLocation ? 
+            calculateDistance(userLocation.lat, userLocation.lng, r.location._lat, r.location._lng)
+            : 0;
+        const distanceText = userLocation ? 
+            `<br><b>المسافة:</b> ${distance < 1000 ? Math.round(distance) + ' م' : (distance/1000).toFixed(1) + ' كم'}`
+            : '';
+
         div.innerHTML = `
-            <div class="badge ${r.direction === 'to_university' ? 'to_university' : 'from_university'}">
-                ${left} مقاعد<br>
-                ${r.direction === 'to_university' ? 'إلى الجامعة' : 'العودة'}
-            </div>
-            <b>من:</b> ${r.from}<br>
-            <b>إلى:</b> ${r.to}<br>
-            <b>اليوم:</b> ${r.day} ${r.time}<br>
-            <b>سعر المقعد:</b> ${r.seatPrice} دج
+            <div class="badge">${r.members.length}/${r.seatsNeeded}</div>
+            <b>${r.name}</b><br>
+            <b>الجامعة:</b> ${r.university}<br>
+            <b>الوقت:</b> ${r.day} ${r.time}<br>
+            <b>المنظم:</b> ${r.organizer}<br>
+            <b>رقم:</b> ${r.phone}
             ${distanceText}
-            <br><b>هاتف السائق:</b> ${r.phone}
         `;
 
-        if (currentRole === 'راكب' && left > 0){
+        if (currentRole === 'راكب' && r.members.length < r.seatsNeeded) {
             const btn = document.createElement('button');
-            btn.textContent = 'احجز';
-            btn.onclick = () => bookRide(r.id);
+            btn.textContent = 'انضم للمجموعة';
+            btn.onclick = () => joinRequest(r.id);
             div.appendChild(btn);
         }
 
-        if (currentRole === 'سائق' && r.driverUid === currentUser.uid){
-            if (r.passengers.length > 0){
-                div.innerHTML += '<br><b>الركاب:</b><br>' +
-                    r.passengers.map(p => `- ${p.name} (${p.phone})`).join('<br>');
-            }
-            const delBtn = document.createElement('button');
-            delBtn.textContent = 'حذف الرحلة';
-            delBtn.style.background = '#c0392b';
-            delBtn.onclick = () => deleteRide(r.id);
-            div.appendChild(delBtn);
+        if (currentRole === 'سائق' && r.status === 'waiting') {
+            const btn = document.createElement('button');
+            btn.textContent = 'قبول المجموعة 🚗';
+            btn.style.background = '#27ae60';
+            btn.onclick = () => acceptRequest(r.id, r.seatsNeeded);
+            div.appendChild(btn);
         }
 
-        const routeBtn = document.createElement('button');
-        routeBtn.textContent = 'عرض المسار';
-        const mapContainer = document.createElement('div');
-        mapContainer.style.height = '200px';
-        mapContainer.style.borderRadius = '10px';
-        mapContainer.style.marginTop = '10px';
-        mapContainer.style.display = 'none';
-        div.appendChild(mapContainer);
+        if (r.status === 'accepted') {
+            const accepted = document.createElement('div');
+            accepted.style.background = '#d4edda';
+            accepted.style.color = '#155724';
+            accepted.style.padding = '0.5rem';
+            accepted.style.borderRadius = '5px';
+            accepted.style.marginTop = '0.5rem';
+            accepted.innerHTML = `
+                ✅ قبلها <b>${r.driver}</b><br>
+                مقاعد: ${r.seatsAvailable} | هاتف: ${r.driverPhone}
+            `;
+            div.appendChild(accepted);
+        }
 
-        routeBtn.onclick = () => {
-            if (mapContainer.style.display === 'none'){
-                mapContainer.style.display = 'block';
-                mapContainer.innerHTML = '';
-                const mapRoute = L.map(mapContainer).setView(r.fromCoords, 13);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18}).addTo(mapRoute);
-                L.Routing.control({
-                    waypoints: [
-                        L.latLng(r.fromCoords[0], r.fromCoords[1]),
-                        L.latLng(r.toCoords[0], r.toCoords[1])
-                    ],
-                    routeWhileDragging: false
-                }).addTo(mapRoute);
-                setTimeout(() => mapRoute.invalidateSize(), 200);
-            } else {
-                mapContainer.style.display = 'none';
-            }
-        };
-        div.appendChild(routeBtn);
-
-        ridesList.appendChild(div);
+        requestsList.appendChild(div);
     });
 }
 </script>
