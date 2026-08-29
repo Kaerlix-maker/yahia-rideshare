@@ -89,13 +89,44 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
 <h2>go to your university with good price and on the good time</h2>
 </header>
 
-<div class="container" id="infoDiv">
-<input id="name" placeholder="الاسم">
-<input id="phone" placeholder="رقم الهاتف">
-<div>
-<button onclick="startApp('سائق')">أنا سائق</button>
-<button onclick="startApp('راكب')">أنا راكب</button>
+<div class="container" id="authDiv">
+<h2>Yahia RideShare</h2>
+
+<!-- Toggle بين Sign Up و Login -->
+<div style="display: flex; gap: 10px; margin-bottom: 1.5rem;">
+  <button onclick="toggleAuthMode('signup')" id="signupBtn" style="flex: 1; background: #111;">إنشاء حساب</button>
+  <button onclick="toggleAuthMode('login')" id="loginBtn" style="flex: 1; background: #666;">دخول</button>
 </div>
+
+<!-- نافذة Sign Up (مرئية في البداية) -->
+<div id="signupForm">
+  <input id="signupName" placeholder="الاسم الكامل">
+  <input id="signupPhone" placeholder="رقم الهاتف (10-12 رقم)">
+  <input id="signupEmail" type="email" placeholder="البريد الإلكتروني">
+  <input id="signupPassword" type="password" placeholder="كلمة السر (6 أحرف على الأقل)">
+  <input id="signupPasswordConfirm" type="password" placeholder="تأكيد كلمة السر">
+  
+  <div style="margin: 1rem 0;">
+    <label style="display: block; margin-bottom: 0.5rem;">
+      <input type="radio" name="role" value="سائق" checked> أنا سائق
+    </label>
+    <label>
+      <input type="radio" name="role" value="راكب"> أنا راكب
+    </label>
+  </div>
+  
+  <button onclick="handleSignUp()">إنشاء الحساب</button>
+  <p id="signupError" style="color: #e74c3c; font-size: 12px; margin-top: 0.5rem;"></p>
+</div>
+
+<!-- نافذة Login (مخفية في البداية) -->
+<div id="loginForm" style="display: none;">
+  <input id="loginEmail" type="email" placeholder="البريد الإلكتروني">
+  <input id="loginPassword" type="password" placeholder="كلمة السر">
+  <button onclick="handleLogin()">دخول</button>
+  <p id="loginError" style="color: #e74c3c; font-size: 12px; margin-top: 0.5rem;"></p>
+</div>
+
 <div id="authStatus" class="status">جارِ الاتصال بالخادم...</div>
 </div>
 
@@ -171,6 +202,8 @@ const auth = firebase.auth();
 // كل رحلة/حجز بمعرف فريد وآمن (uid) بدل نعتمد غير على الاسم
 let currentUid = null;
 
+
+
 /* =========================================================
    2) STATE
    ========================================================= */
@@ -207,17 +240,140 @@ const universityCoords = {
 /* =========================================================
    3) AUTH - دخول مجهول تلقائي عند فتح الصفحة
    ========================================================= */
-auth.signInAnonymously().catch(err => {
-    authStatus.textContent = "⚠️ خطأ في الاتصال: " + err.message;
-});
+/* =========================================================
+   AUTH SYSTEM - Email/Password
+   ========================================================= */
+
+function toggleAuthMode(mode) {
+    if (mode === 'signup') {
+        document.getElementById('signupForm').style.display = 'block';
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('signupBtn').style.background = '#111';
+        document.getElementById('loginBtn').style.background = '#666';
+    } else {
+        document.getElementById('signupForm').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('loginBtn').style.background = '#111';
+        document.getElementById('signupBtn').style.background = '#666';
+    }
+}
+
+async function handleSignUp() {
+    const name = document.getElementById('signupName').value.trim();
+    const phone = document.getElementById('signupPhone').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('signupPasswordConfirm').value;
+    const role = document.querySelector('input[name="role"]:checked').value;
+    
+    const errorEl = document.getElementById('signupError');
+    errorEl.textContent = '';
+
+    if (!name || !phone || !email || !password || !confirmPassword) {
+        errorEl.textContent = 'أكمل جميع الحقول';
+        return;
+    }
+
+    if (!/^\d{10,12}$/.test(phone)) {
+        errorEl.textContent = 'رقم الهاتف يجب أن يكون 10-12 أرقام';
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        errorEl.textContent = 'كلمة السر غير متطابقة';
+        return;
+    }
+
+    if (password.length < 6) {
+        errorEl.textContent = 'كلمة السر يجب أن تكون 6 أحرف على الأقل';
+        return;
+    }
+
+    try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        await db.collection('users').doc(user.uid).set({
+            uid: user.uid,
+            name: name,
+            phone: phone,
+            email: email,
+            role: role,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        currentUser = { uid: user.uid, name: name, phone: phone, email: email };
+        currentRole = role;
+        
+        document.getElementById('authDiv').style.display = 'none';
+        document.getElementById('appDiv').style.display = 'block';
+        document.getElementById('userName').textContent = name;
+        document.getElementById('userRole').textContent = role;
+        
+        if (role === 'سائق') driverSection.style.display = 'block';
+        
+        listenToRides();
+    } catch (error) {
+        errorEl.textContent = 'خطأ: ' + error.message;
+    }
+}
+
+async function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    const errorEl = document.getElementById('loginError');
+    errorEl.textContent = '';
+
+    if (!email || !password) {
+        errorEl.textContent = 'أدخل البريد الإلكتروني وكلمة السر';
+        return;
+    }
+
+    try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        const userData = userDoc.data();
+
+        currentUser = { uid: user.uid, name: userData.name, phone: userData.phone, email: userData.email };
+        currentRole = userData.role;
+        
+        document.getElementById('authDiv').style.display = 'none';
+        document.getElementById('appDiv').style.display = 'block';
+        document.getElementById('userName').textContent = userData.name;
+        document.getElementById('userRole').textContent = userData.role;
+        
+        if (userData.role === 'سائق') driverSection.style.display = 'block';
+        
+        listenToRides();
+    } catch (error) {
+        errorEl.textContent = 'خطأ: ' + error.message;
+    }
+}
 
 auth.onAuthStateChanged(user => {
     if (user) {
-        currentUid = user.uid;
-        authStatus.textContent = "";
-        addRideBtn.disabled = false;
+        db.collection('users').doc(user.uid).get().then(doc => {
+            if (doc.exists) {
+                const userData = doc.data();
+                currentUser = { uid: user.uid, name: userData.name, phone: userData.phone, email: userData.email };
+                currentRole = userData.role;
+                
+                document.getElementById('authDiv').style.display = 'none';
+                document.getElementById('appDiv').style.display = 'block';
+                document.getElementById('userName').textContent = userData.name;
+                document.getElementById('userRole').textContent = userData.role;
+                
+                if (userData.role === 'سائق') driverSection.style.display = 'block';
+                
+                listenToRides();
+            }
+        });
     } else {
-        authStatus.textContent = "⚠️ غير متصل بالخادم";
+        document.getElementById('authDiv').style.display = 'block';
+        document.getElementById('appDiv').style.display = 'none';
     }
 });
 
@@ -248,32 +404,25 @@ function toggleMap(){
 }
 
 /* =========================================================
-   5) START / LOGOUT
+   LOGOUT FUNCTION
    ========================================================= */
-function startApp(role){
-    const name = nameInput.value.trim();
-    const phone = phoneInput.value.trim();
-    if (!name || !/^\d{10,12}$/.test(phone)) return alert('الاسم أو رقم الهاتف غير صحيح');
-    if (!currentUid) return alert('لم يتم الاتصال بالخادم بعد، انتظر قليلاً وحاول من جديد');
-
-    currentUser = {name, phone, uid: currentUid};
-    currentRole = role;
-
-    document.getElementById('infoDiv').style.display = 'none';
-    document.getElementById('appDiv').style.display = 'block';
-    document.getElementById('userName').textContent = name;
-    document.getElementById('userRole').textContent = role;
-    if (role === 'سائق') driverSection.style.display = 'block';
-
-    listenToRides();
-}
-
-function logout(){
-    if (unsubscribeRides) unsubscribeRides();
+async function logout(){
+    await auth.signOut();
     currentUser = null;
     currentRole = null;
+    
     document.getElementById('appDiv').style.display = 'none';
-    document.getElementById('infoDiv').style.display = 'block';
+    document.getElementById('authDiv').style.display = 'block';
+    
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('signupName').value = '';
+    document.getElementById('signupPhone').value = '';
+    document.getElementById('signupEmail').value = '';
+    document.getElementById('signupPassword').value = '';
+    document.getElementById('signupPasswordConfirm').value = '';
+    
+    if (unsubscribeRides) unsubscribeRides();
     ridesList.innerHTML = '';
 }
 
@@ -477,3 +626,4 @@ function renderRides(){
 </script>
 </body>
 </html>
+
