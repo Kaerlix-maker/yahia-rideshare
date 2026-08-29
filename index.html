@@ -166,6 +166,23 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
 <button id="addRideBtn" onclick="addRide()">إضافة الرحلة</button>
 </div>
 
+<!-- قسم الفلتر (للراكب فقط) -->
+<div id="filterSection" style="display:none; background: rgba(255,255,255,0.06); backdrop-filter: blur(6px); padding: 1.5rem; border-radius: 12px; margin: 2rem auto; max-width: 750px;">
+  <h4 style="margin-top: 0; color: white;">فلتر الرحلات حسب المسافة</h4>
+  
+  <button onclick="getLocation()" style="background: #3498db; margin-bottom: 1rem; color: white;">
+    📍 جلب موقعي الحالي
+  </button>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+    <button onclick="setDistance(10)" id="dist10" style="background: #666; color: white; font-size: 12px;">10 متر</button>
+    <button onclick="setDistance(50)" id="dist50" style="background: #666; color: white; font-size: 12px;">50 متر</button>
+    <button onclick="setDistance(100)" id="dist100" style="background: #111; color: white; font-size: 12px;">100 متر</button>
+    <button onclick="setDistance(1000)" id="dist1000" style="background: #666; color: white; font-size: 12px;">1 كيلومتر</button>
+  </div>
+</div>
+
+<div class="container">
 <h3>الرحلات المتاحة</h3>
 <div id="ridesStatus" class="status" style="display:none">جارِ تحميل الرحلات...</div>
 <div id="ridesList"></div>
@@ -211,6 +228,9 @@ let currentUser, currentRole;
 let rides = [];              // نسخة محلية محدثة تلقائياً من Firestore
 let unsubscribeRides = null; // للتوقف عن الاستماع عند logout
 let selectedPoint = null;
+let userLocation = null;     // موقع المستخدم الحالي
+let selectedDistance = 100;  // المسافة المختارة (متر) - افتراضياً 100م
+let isLoadingLocation = false; // للتحقق من جلب الموقع
 
 const nameInput = document.getElementById('name');
 const phoneInput = document.getElementById('phone');
@@ -397,6 +417,62 @@ mapSelector.on('click', async e => {
     marker = L.marker(selectedPoint).addTo(mapSelector).bindPopup('نقطة الانطلاق').openPopup();
 });
 
+/* =========================================================
+   LOCATION AND DISTANCE FUNCTIONS
+   ========================================================= */
+
+// حساب المسافة بين نقطتين (بالمتر)
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000; // نصف قطر الأرض بالمتر
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // المسافة بالمتر
+}
+
+// جلب موقع المستخدم الحالي
+function getLocation() {
+    isLoadingLocation = true;
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                isLoadingLocation = false;
+                renderRides();  // تحديث الرحلات
+                alert('تم جلب الموقع بنجاح');
+            },
+            error => {
+                isLoadingLocation = false;
+                alert('خطأ في جلب الموقع: ' + error.message);
+            }
+        );
+    } else {
+        alert('متصفحك لا يدعم الموقع الجغرافي');
+        isLoadingLocation = false;
+    }
+}
+
+// تبديل المسافة المختارة
+function setDistance(distance) {
+    selectedDistance = distance;
+    
+    // تحديث أزرار الفلتر
+    document.getElementById('dist10').style.background = distance === 10 ? '#111' : '#666';
+    document.getElementById('dist50').style.background = distance === 50 ? '#111' : '#666';
+    document.getElementById('dist100').style.background = distance === 100 ? '#111' : '#666';
+    document.getElementById('dist1000').style.background = distance === 1000 ? '#111' : '#666';
+    
+    renderRides();  // إعادة عرض الرحلات
+}
+
 function toggleMap(){
     const m = document.getElementById('mapSelector');
     m.style.display = m.style.display === 'none' ? 'block' : 'none';
@@ -549,14 +625,57 @@ function listenToRides(){
    ========================================================= */
 function renderRides(){
     ridesList.innerHTML = '';
+    
+    // إظهار قسم الفلتر للراكب فقط
+    if (currentRole === 'راكب') {
+        document.getElementById('filterSection').style.display = 'block';
+    } else {
+        document.getElementById('filterSection').style.display = 'none';
+    }
 
-    if (rides.length === 0){
+    let visibleRides = rides.filter((r) => {
+        if(currentRole === 'سائق'){
+            return r.driverUid === currentUser.uid;
+        }
+        return true;
+    });
+    
+    // تطبيق فلتر المسافة للراكب
+    if (currentRole === 'راكب' && userLocation) {
+        visibleRides = visibleRides.filter((r) => {
+            const distance = calculateDistance(
+                userLocation.lat, 
+                userLocation.lng,
+                r.fromCoords[0],
+                r.fromCoords[1]
+            );
+            return distance <= selectedDistance;
+        });
+    }
+
+    if (visibleRides.length === 0){
         ridesList.innerHTML = '<p class="status">لا توجد رحلات متاحة حالياً</p>';
         return;
     }
 
-    rides.forEach(r => {
+    visibleRides.forEach(r => {
         const left = r.seats - r.passengers.length;
+        
+        // حساب المسافة لعرضها
+        let distanceText = '';
+        if (currentRole === 'راكب' && userLocation) {
+            const distance = calculateDistance(
+                userLocation.lat, 
+                userLocation.lng,
+                r.fromCoords[0],
+                r.fromCoords[1]
+            );
+            if (distance < 1000) {
+                distanceText = `<br><b>المسافة:</b> ${Math.round(distance)} متر`;
+            } else {
+                distanceText = `<br><b>المسافة:</b> ${(distance/1000).toFixed(1)} كم`;
+            }
+        }
 
         const div = document.createElement('div');
         div.className = 'ride';
@@ -568,8 +687,9 @@ function renderRides(){
             <b>من:</b> ${r.from}<br>
             <b>إلى:</b> ${r.to}<br>
             <b>اليوم:</b> ${r.day} ${r.time}<br>
-            <b>سعر المقعد:</b> ${r.seatPrice} دج<br>
-            <b>هاتف السائق:</b> ${r.phone}
+            <b>سعر المقعد:</b> ${r.seatPrice} دج
+            ${distanceText}
+            <br><b>هاتف السائق:</b> ${r.phone}
         `;
 
         if (currentRole === 'راكب' && left > 0){
@@ -626,4 +746,5 @@ function renderRides(){
 </script>
 </body>
 </html>
+
 
