@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yahia RideShare - v4</title>
+<title>Yahia RideShare - v5</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -19,11 +19,7 @@ header {
     padding:1rem;
     text-align:center;
 }
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 1rem;
-}
+.container { max-width: 800px; margin: 0 auto; padding: 1rem; }
 .auth-box {
     max-width: 400px;
     margin: 2rem auto;
@@ -50,29 +46,11 @@ button {
     font-weight: bold;
 }
 button:hover { background: #333; }
-.tab-nav {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-.tab-nav button {
-    width: auto;
-    padding: 0.6rem 1rem;
-    background: #666;
-    border-radius: 6px;
-    margin: 0;
-}
-.tab-nav button.active { background: #111; }
+.tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.tabs button { width: auto; padding: 0.6rem 1rem; background: #666; margin: 0; border-radius: 6px; }
+.tabs button.active { background: #111; }
 .page { display: none; }
 .page.active { display: block; }
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #fff;
-    margin-bottom: 1rem;
-}
-.topbar button { width: auto; padding: 0.5rem 1rem; }
 .card {
     background: rgba(255,255,255,0.95);
     color: #111;
@@ -80,18 +58,19 @@ button:hover { background: #333; }
     margin: 0.5rem 0;
     border-radius: 10px;
 }
-.group-card {
+.group-btn {
     background: rgba(100,200,255,0.15);
     color: #fff;
     padding: 1rem;
     margin: 0.5rem 0;
+    border: 2px solid #3498db;
     border-radius: 10px;
-    border-left: 4px solid #3498db;
     cursor: pointer;
+    text-align: right;
+    font-size: 16px;
+    font-weight: bold;
 }
-.group-card:hover { background: rgba(100,200,255,0.25); }
-.empty { text-align: center; padding: 2rem; opacity: 0.7; }
-.status { font-size: 12px; opacity: 0.8; }
+.group-btn:hover { background: rgba(100,200,255,0.25); }
 .badge {
     display: inline-block;
     background: #e8f5e9;
@@ -100,37 +79,51 @@ button:hover { background: #333; }
     border-radius: 4px;
     font-size: 12px;
 }
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    margin-bottom: 1rem;
+}
+.topbar button { width: auto; padding: 0.5rem 1rem; }
+.empty { text-align: center; padding: 2rem; opacity: 0.7; color: #fff; }
+.status { font-size: 12px; opacity: 0.8; color: #aaa; }
+.error { color: #e74c3c; font-size: 12px; }
+.success { color: #27ae60; font-size: 12px; }
 </style>
 </head>
 <body>
 <header>
-<h1>Yahia RideShare - v4</h1>
+<h1>Yahia RideShare - v5</h1>
 </header>
 
 <!-- AUTH -->
 <div id="authBox" class="auth-box">
 <div style="display: flex; gap: 10px; margin-bottom: 1.5rem;">
-  <button onclick="switchAuthMode('signup')" id="signupTab" style="width: 50%; background: #111;">إنشاء</button>
-  <button onclick="switchAuthMode('login')" id="loginTab" style="width: 50%; background: #666;">دخول</button>
+  <button onclick="switchAuthTab('signup')" id="signupTab" style="width: 50%; background: #111;">إنشاء</button>
+  <button onclick="switchAuthTab('login')" id="loginTab" style="width: 50%; background: #666;">دخول</button>
 </div>
+
 <div id="signupForm">
-  <input id="signupName" placeholder="الاسم">
+  <input id="signupName" placeholder="الاسم الكامل">
   <input id="signupPhone" placeholder="الهاتف (10-12)">
-  <input id="signupEmail" type="email" placeholder="البريد">
+  <input id="signupEmail" type="email" placeholder="البريد الإلكتروني">
   <input id="signupPassword" type="password" placeholder="كلمة السر (6+)">
-  <input id="signupPasswordConfirm" type="password" placeholder="تأكيد">
+  <input id="signupPasswordConfirm" type="password" placeholder="تأكيد السر">
   <div style="margin: 1rem 0;">
     <label><input type="radio" name="role" value="راكب" checked> راكب</label>
     <label style="margin-right: 1rem;"><input type="radio" name="role" value="سائق"> سائق</label>
   </div>
-  <button onclick="signup()">إنشاء</button>
-  <p id="signupError" style="color: #e74c3c; font-size: 12px; margin-top: 0.5rem;"></p>
+  <button onclick="signup()">إنشاء الحساب</button>
+  <p id="signupError" class="error"></p>
 </div>
+
 <div id="loginForm" style="display: none;">
-  <input id="loginEmail" type="email" placeholder="البريد">
+  <input id="loginEmail" type="email" placeholder="البريد الإلكتروني">
   <input id="loginPassword" type="password" placeholder="كلمة السر">
   <button onclick="login()">دخول</button>
-  <p id="loginError" style="color: #e74c3c; font-size: 12px; margin-top: 0.5rem;"></p>
+  <p id="loginError" class="error"></p>
 </div>
 </div>
 
@@ -145,48 +138,52 @@ button:hover { background: #333; }
   <button onclick="logout()">خروج</button>
 </div>
 
-<!-- PASSENGER -->
-<div id="passengerTabs" style="display: none;">
-<div class="tab-nav">
-  <button class="tab-btn active" onclick="switchTab('rides', this)">🚗 الرحلات</button>
-  <button class="tab-btn" onclick="switchTab('groups', this)">👥 المجموعات</button>
+<!-- ============ PASSENGER ============ -->
+<div id="passengerNav" style="display: none;">
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTabContent('pRides', this)">🚗 الرحلات</button>
+  <button class="tab-btn" onclick="switchTabContent('pGroups', this)">👥 المجموعات</button>
 </div>
 
 <!-- Rides Page -->
-<div id="rides" class="page active">
-<h3>الرحلات القريبة</h3>
-<div id="ridesList"></div>
+<div id="pRides" class="page active">
+<h3>الرحلات المتاحة</h3>
+<div id="ridesList" class="empty">جاري التحميل...</div>
 </div>
 
-<!-- Groups Page -->
-<div id="groups" class="page">
+<!-- Groups List -->
+<div id="pGroups" class="page">
 <h3>مجموعات الجامعات</h3>
 <div id="groupsList"></div>
-<div id="groupDetail" style="display: none; margin-top: 2rem; background: rgba(255,255,255,0.06); padding: 1.5rem; border-radius: 10px; color: #fff;">
-  <button onclick="closeGroupDetail()" style="margin-bottom: 1rem;">← رجوع</button>
-  <h4 id="groupTitle"></h4>
-  <div id="groupRequests"></div>
-  <h4 style="margin-top: 1.5rem;">📝 أطلب رحلة</h4>
-  <input id="reqDay" type="date">
-  <input id="reqTime" type="time">
-  <input id="reqSeats" type="number" placeholder="الركاب المطلوبين (3-7)" min="3" max="7" value="3">
-  <input id="reqBudget" type="number" placeholder="الميزانية الإجمالية">
-  <button onclick="createRequest()">إنشاء طلب</button>
 </div>
+
+<!-- Group Detail -->
+<div id="pGroupDetail" class="page">
+<button onclick="backToGroups()" style="margin-bottom: 1rem;">← رجوع</button>
+<h3 id="groupTitle"></h3>
+<div id="groupRequests"></div>
+<hr style="border: 1px solid #666; margin: 1.5rem 0;">
+<h4 style="color: #fff; margin-bottom: 1rem;">📝 إنشاء طلب رحلة</h4>
+<input id="reqDay" type="date">
+<input id="reqTime" type="time">
+<input id="reqSeats" type="number" placeholder="عدد الركاب (3-7)" min="3" max="7" value="3">
+<input id="reqBudget" type="number" placeholder="الميزانية الإجمالية">
+<button onclick="createRequest()">إنشاء الطلب</button>
+<p id="reqError" class="error" style="margin-top: 0.5rem;"></p>
 </div>
 </div>
 
-<!-- DRIVER -->
-<div id="driverTabs" style="display: none;">
-<div class="tab-nav">
-  <button class="tab-btn active" onclick="switchTab('dCreate', this)">➕ إنشاء</button>
-  <button class="tab-btn" onclick="switchTab('dMyRides', this)">🚗 رحلاتي</button>
-  <button class="tab-btn" onclick="switchTab('dRequests', this)">📋 الطلبات</button>
+<!-- ============ DRIVER ============ -->
+<div id="driverNav" style="display: none;">
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTabContent('dCreate', this)">➕ إنشاء رحلة</button>
+  <button class="tab-btn" onclick="switchTabContent('dMyRides', this)">🚗 رحلاتي</button>
+  <button class="tab-btn" onclick="switchTabContent('dRequests', this)">📋 الطلبات</button>
 </div>
 
-<!-- Create Ride -->
+<!-- Create -->
 <div id="dCreate" class="page active">
-<h3>إنشاء رحلة</h3>
+<h3>إنشاء رحلة جديدة</h3>
 <select id="dUniversity">
   <option value="">اختر الجامعة</option>
   <option>جامعة باجي مختار – سيدي عمار</option>
@@ -200,20 +197,21 @@ button:hover { background: #333; }
 <input id="dDay" type="date">
 <input id="dTime" type="time">
 <input id="dSeats" type="number" placeholder="المقاعد (2-7)" min="2" max="7" value="3">
-<input id="dPrice" type="number" placeholder="السعر الإجمالي">
-<button onclick="createRide()" style="background: #27ae60; margin-top: 1rem;">إنشاء</button>
+<input id="dPrice" type="number" placeholder="السعر الكلي">
+<button onclick="createRide()" style="background: #27ae60; margin-top: 1rem;">إنشاء الرحلة</button>
+<p id="dError" class="error" style="margin-top: 0.5rem;"></p>
 </div>
 
 <!-- My Rides -->
 <div id="dMyRides" class="page">
 <h3>رحلاتي</h3>
-<div id="myRidesList"></div>
+<div id="myRidesList" class="empty">لا توجد رحلات</div>
 </div>
 
 <!-- Requests -->
 <div id="dRequests" class="page">
 <h3>طلبات المجموعات</h3>
-<div id="requestsList"></div>
+<div id="requestsList" class="empty">لا توجد طلبات قريبة</div>
 </div>
 </div>
 
@@ -239,11 +237,12 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-let currentUser, currentRole;
-let userLocation = null;
+let currentUser = null;
+let currentRole = null;
+let userLocation = { lat: 36.8865, lng: 7.7385 }; // عنابة default
 let rides = [];
 let requests = [];
-let selectedGroup = null;
+let selectedGroupName = null;
 
 const universities = {
   "جامعة باجي مختار – سيدي عمار": [36.879, 7.725],
@@ -259,14 +258,13 @@ function calcDist(lat1, lon1, lat2, lon2) {
     const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
 }
 
-function switchAuthMode(mode) {
+// ============ AUTH ============
+function switchAuthTab(mode) {
     document.getElementById('signupForm').style.display = mode === 'signup' ? 'block' : 'none';
     document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
     document.getElementById('signupTab').style.background = mode === 'signup' ? '#111' : '#666';
@@ -285,19 +283,19 @@ async function signup() {
     err.textContent = '';
 
     if (!name || !phone || !email || !password || !confirmPassword) {
-        err.textContent = 'أكمل الحقول';
+        err.textContent = '❌ أكمل جميع الحقول';
         return;
     }
     if (!/^\d{10,12}$/.test(phone)) {
-        err.textContent = 'رقم صحيح (10-12)';
+        err.textContent = '❌ رقم صحيح (10-12 أرقام)';
         return;
     }
     if (password !== confirmPassword) {
-        err.textContent = 'كلمات السر غير متطابقة';
+        err.textContent = '❌ كلمات السر غير متطابقة';
         return;
     }
     if (password.length < 6) {
-        err.textContent = 'كلمة السر: 6+ أحرف';
+        err.textContent = '❌ كلمة السر: 6 أحرف على الأقل';
         return;
     }
 
@@ -316,9 +314,9 @@ async function signup() {
 
         currentUser = { uid: user.uid, name: name, phone: phone };
         currentRole = role;
-        requestLocation();
+        getLocation();
     } catch (error) {
-        err.textContent = 'خطأ: ' + error.message;
+        err.textContent = '❌ ' + error.message;
     }
 }
 
@@ -330,7 +328,7 @@ async function login() {
     err.textContent = '';
 
     if (!email || !password) {
-        err.textContent = 'ادخل البريد وكلمة السر';
+        err.textContent = '❌ ادخل البريد وكلمة السر';
         return;
     }
 
@@ -343,29 +341,31 @@ async function login() {
 
         currentUser = { uid: user.uid, name: userData.name, phone: userData.phone };
         currentRole = userData.role;
-        requestLocation();
+        getLocation();
     } catch (error) {
-        err.textContent = 'خطأ: ' + error.message;
+        err.textContent = '❌ ' + error.message;
     }
 }
 
-function requestLocation() {
+function getLocation() {
     document.getElementById('locationStatus').textContent = '⏳ جاري جلب الموقع...';
     
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             position => {
                 userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-                document.getElementById('locationStatus').textContent = '✅ موقعك محدث';
+                document.getElementById('locationStatus').textContent = `✅ موقعك جاهز`;
                 enterApp();
             },
             error => {
-                alert('خطأ الموقع: ' + error.message);
-                enterApp(); // ادخل حتى بدون موقع
-            }
+                console.log('استخدام موقع افتراضي:', userLocation);
+                document.getElementById('locationStatus').textContent = `⚠️ استخدام موقع افتراضي`;
+                setTimeout(enterApp, 1000);
+            },
+            { enableHighAccuracy: false, timeout: 5000 }
         );
     } else {
-        alert('المتصفح لا يدعم الموقع');
+        document.getElementById('locationStatus').textContent = `⚠️ لا يدعم الموقع`;
         enterApp();
     }
 }
@@ -376,24 +376,22 @@ function enterApp() {
     document.getElementById('userName').textContent = currentUser.name + ' (' + currentRole + ')';
     
     if (currentRole === 'راكب') {
-        document.getElementById('passengerTabs').style.display = 'block';
-        document.getElementById('driverTabs').style.display = 'none';
-        listenRides();
-        listenRequests();
-        renderGroups();
+        document.getElementById('passengerNav').style.display = 'block';
+        document.getElementById('driverNav').style.display = 'none';
+        renderGroupsList();
     } else {
-        document.getElementById('passengerTabs').style.display = 'none';
-        document.getElementById('driverTabs').style.display = 'block';
-        listenRides();
-        listenRequests();
+        document.getElementById('passengerNav').style.display = 'none';
+        document.getElementById('driverNav').style.display = 'block';
     }
+    
+    listenToRides();
+    listenToRequests();
 }
 
 async function logout() {
     await auth.signOut();
     currentUser = null;
     currentRole = null;
-    userLocation = null;
     document.getElementById('authBox').style.display = 'block';
     document.getElementById('appBox').style.display = 'none';
 }
@@ -405,13 +403,13 @@ auth.onAuthStateChanged(user => {
                 const userData = doc.data();
                 currentUser = { uid: user.uid, name: userData.name, phone: userData.phone };
                 currentRole = userData.role;
-                requestLocation();
+                getLocation();
             }
         });
     }
 });
 
-// ============ DRIVER RIDES ============
+// ============ RIDES ============
 async function createRide() {
     const university = document.getElementById('dUniversity').value;
     const day = document.getElementById('dDay').value;
@@ -419,14 +417,17 @@ async function createRide() {
     const seats = parseInt(document.getElementById('dSeats').value);
     const price = parseInt(document.getElementById('dPrice').value);
     
+    const err = document.getElementById('dError');
+    err.textContent = '';
+
     if (!university || !day || !time || !seats || !price) {
-        alert('أكمل الحقول');
+        err.textContent = '❌ أكمل جميع الحقول';
         return;
     }
 
     const rideDateTime = new Date(`${day}T${time}`);
     if (rideDateTime < new Date()) {
-        alert('تاريخ ماضٍ');
+        err.textContent = '❌ تاريخ ماضٍ';
         return;
     }
 
@@ -449,18 +450,18 @@ async function createRide() {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        alert('✅ رحلة منشورة');
+        err.textContent = '✅ رحلة منشورة بنجاح';
         document.getElementById('dUniversity').value = '';
         document.getElementById('dDay').value = '';
         document.getElementById('dTime').value = '';
         document.getElementById('dSeats').value = '3';
         document.getElementById('dPrice').value = '';
     } catch (error) {
-        alert('خطأ: ' + error.message);
+        err.textContent = '❌ ' + error.message;
     }
 }
 
-function listenRides() {
+function listenToRides() {
     const now = firebase.firestore.Timestamp.fromDate(new Date());
     db.collection('rides')
         .where('rideTimestamp', '>=', now)
@@ -468,19 +469,14 @@ function listenRides() {
         .orderBy('rideTimestamp')
         .onSnapshot(snapshot => {
             rides = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            if (currentRole === 'راكب') renderRides();
-            else renderMyRides();
+            renderRides();
+            renderMyRides();
         });
 }
 
 function renderRides() {
     const container = document.getElementById('ridesList');
     container.innerHTML = '';
-    
-    if (!userLocation) {
-        container.innerHTML = '<div class="empty">جاري جلب موقعك...</div>';
-        return;
-    }
     
     let visible = rides.filter(r => {
         const dist = calcDist(userLocation.lat, userLocation.lng, r.location._lat, r.location._lng);
@@ -500,13 +496,13 @@ function renderRides() {
             <span class="badge">${r.seatsLeft}/${r.totalSeats}</span><br>
             <b>${r.university}</b><br>
             <b>الوقت:</b> ${r.day} ${r.time}<br>
-            <b>سعر:</b> ${r.seatPrice} دج<br>
+            <b>السعر:</b> ${r.seatPrice} دج/المقعد<br>
             <b>السائق:</b> ${r.driver} (${r.phone})<br>
             <b>المسافة:</b> ${dist < 1000 ? Math.round(dist) + 'م' : (dist/1000).toFixed(1) + 'كم'}
         `;
         
         const btn = document.createElement('button');
-        btn.textContent = 'احجز';
+        btn.textContent = 'احجز مقعد';
         btn.style.marginTop = '0.5rem';
         btn.onclick = () => bookRide(r.id);
         card.appendChild(btn);
@@ -540,9 +536,9 @@ async function bookRide(rideId) {
             seatsLeft: r.seatsLeft - 1
         });
         
-        alert('✅ تم الحجز');
+        alert('✅ تم الحجز بنجاح');
     } catch (error) {
-        alert('خطأ: ' + error.message);
+        alert('❌ ' + error.message);
     }
 }
 
@@ -564,48 +560,48 @@ function renderMyRides() {
             <span class="badge">${r.seatsLeft}/${r.totalSeats}</span><br>
             <b>${r.university}</b> | ${r.day} ${r.time}<br>
             <b>السعر:</b> ${r.seatPrice} دج/المقعد<br>
-            <b>الركاب:</b> ${r.passengers.map(p => p.name).join(', ') || 'لا أحد'}
+            <b>الركاب:</b> ${r.passengers.map(p => p.name + ' (' + p.phone + ')').join(', ') || 'لا أحد بعد'}
         `;
         container.appendChild(card);
     });
 }
 
-// ============ REQUESTS & GROUPS ============
-function renderGroups() {
+// ============ GROUPS & REQUESTS ============
+function renderGroupsList() {
     const container = document.getElementById('groupsList');
     container.innerHTML = '';
     
     Object.keys(universities).forEach(uni => {
-        const card = document.createElement('div');
-        card.className = 'group-card';
-        card.textContent = '👥 ' + uni;
-        card.onclick = () => openGroup(uni);
-        container.appendChild(card);
+        const btn = document.createElement('button');
+        btn.className = 'group-btn';
+        btn.textContent = '👥 ' + uni;
+        btn.onclick = () => openGroup(uni);
+        container.appendChild(btn);
     });
 }
 
 function openGroup(university) {
-    selectedGroup = university;
-    document.getElementById('groups').style.display = 'none';
-    document.getElementById('groupDetail').style.display = 'block';
+    selectedGroupName = university;
+    document.getElementById('pGroups').classList.remove('active');
+    document.getElementById('pGroupDetail').classList.add('active');
     document.getElementById('groupTitle').textContent = university;
     renderGroupRequests();
 }
 
-function closeGroupDetail() {
-    selectedGroup = null;
-    document.getElementById('groupDetail').style.display = 'none';
-    document.getElementById('groups').style.display = 'block';
+function backToGroups() {
+    selectedGroupName = null;
+    document.getElementById('pGroupDetail').classList.remove('active');
+    document.getElementById('pGroups').classList.add('active');
 }
 
 function renderGroupRequests() {
     const container = document.getElementById('groupRequests');
     container.innerHTML = '';
     
-    const groupReqs = requests.filter(r => r.university === selectedGroup);
+    const groupReqs = requests.filter(r => r.university === selectedGroupName);
     
     if (groupReqs.length === 0) {
-        container.innerHTML = '<p class="status">لا توجد طلبات</p>';
+        container.innerHTML = '<p class="status">لا توجد طلبات في هذه المجموعة</p>';
         return;
     }
     
@@ -614,19 +610,22 @@ function renderGroupRequests() {
         card.className = 'card';
         card.innerHTML = `
             <span class="badge">${r.members.length}/${r.seatsNeeded}</span><br>
-            <b>${r.organizer}</b><br>
+            <b>من:</b> ${r.organizer}<br>
             <b>الوقت:</b> ${r.day} ${r.time}<br>
             <b>الميزانية:</b> ${r.budget} دج
         `;
         
-        if (r.members.some(m => m.uid === currentUser.uid)) {
+        const isJoined = r.members.some(m => m.uid === currentUser.uid);
+        
+        if (isJoined) {
             const span = document.createElement('span');
             span.textContent = ' ✅ منضم';
             span.style.color = '#27ae60';
+            span.style.marginLeft = '0.5rem';
             card.appendChild(span);
         } else if (r.members.length < r.seatsNeeded) {
             const btn = document.createElement('button');
-            btn.textContent = 'انضم';
+            btn.textContent = 'انضم للمجموعة';
             btn.style.marginTop = '0.5rem';
             btn.onclick = () => joinRequest(r.id);
             card.appendChild(btn);
@@ -637,22 +636,23 @@ function renderGroupRequests() {
 }
 
 async function createRequest() {
-    if (!selectedGroup) return;
-    
     const day = document.getElementById('reqDay').value;
     const time = document.getElementById('reqTime').value;
     const seats = parseInt(document.getElementById('reqSeats').value);
     const budget = parseInt(document.getElementById('reqBudget').value);
     
+    const err = document.getElementById('reqError');
+    err.textContent = '';
+
     if (!day || !time || !seats || !budget) {
-        alert('أكمل الحقول');
+        err.textContent = '❌ أكمل جميع الحقول';
         return;
     }
     
     try {
-        const coords = universities[selectedGroup];
+        const coords = universities[selectedGroupName];
         await db.collection('requests').add({
-            university: selectedGroup,
+            university: selectedGroupName,
             organizer: currentUser.name,
             phone: currentUser.phone,
             organizerUid: currentUser.uid,
@@ -663,17 +663,17 @@ async function createRequest() {
             requestTimestamp: firebase.firestore.Timestamp.fromDate(new Date(`${day}T${time}`)),
             members: [{ uid: currentUser.uid, name: currentUser.name, phone: currentUser.phone }],
             location: new firebase.firestore.GeoPoint(coords[0], coords[1]),
+            status: 'waiting',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        alert('✅ طلب منشور');
+        err.textContent = '✅ طلب منشور بنجاح';
         document.getElementById('reqDay').value = '';
         document.getElementById('reqTime').value = '';
         document.getElementById('reqSeats').value = '3';
         document.getElementById('reqBudget').value = '';
-        renderGroupRequests();
     } catch (error) {
-        alert('خطأ: ' + error.message);
+        err.textContent = '❌ ' + error.message;
     }
 }
 
@@ -689,7 +689,7 @@ async function joinRequest(requestId) {
         }
         
         if (r.members.length >= r.seatsNeeded) {
-            alert('الطلب امتلأ');
+            alert('المجموعة امتلأت');
             return;
         }
         
@@ -701,16 +701,17 @@ async function joinRequest(requestId) {
             })
         });
         
+        alert('✅ تم الانضمام');
         renderGroupRequests();
     } catch (error) {
-        alert('خطأ: ' + error.message);
+        alert('❌ ' + error.message);
     }
 }
 
-function listenRequests() {
+function listenToRequests() {
     db.collection('requests').onSnapshot(snapshot => {
         requests = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        if (currentRole === 'راكب' && selectedGroup) {
+        if (currentRole === 'راكب' && selectedGroupName) {
             renderGroupRequests();
         } else if (currentRole === 'سائق') {
             renderDriverRequests();
@@ -722,14 +723,9 @@ function renderDriverRequests() {
     const container = document.getElementById('requestsList');
     container.innerHTML = '';
     
-    if (!userLocation) {
-        container.innerHTML = '<div class="empty">جاري جلب موقعك...</div>';
-        return;
-    }
-    
     let visible = requests.filter(r => {
         const dist = calcDist(userLocation.lat, userLocation.lng, r.location._lat, r.location._lng);
-        return dist <= 1000 && r.members.length < r.seatsNeeded;
+        return dist <= 1000 && r.status === 'waiting';
     });
     
     if (visible.length === 0) {
@@ -754,17 +750,17 @@ function renderDriverRequests() {
         btn.textContent = 'قبول المجموعة';
         btn.style.background = '#27ae60';
         btn.style.marginTop = '0.5rem';
-        btn.onclick = () => acceptRequest(r.id);
+        btn.onclick = () => acceptRequest(r.id, r.seatsNeeded);
         card.appendChild(btn);
         
         container.appendChild(card);
     });
 }
 
-async function acceptRequest(requestId) {
-    const seats = parseInt(prompt('كم مقعد عندك؟'));
-    if (!seats || seats < 2) {
-        alert('عدد غير صحيح');
+async function acceptRequest(requestId, seatsNeeded) {
+    const seats = prompt(`كم مقعد عندك؟ (المطلوب ${seatsNeeded})`);
+    if (!seats || parseInt(seats) < seatsNeeded) {
+        alert('عدد غير كافٍ');
         return;
     }
     
@@ -773,17 +769,18 @@ async function acceptRequest(requestId) {
             driverUid: currentUser.uid,
             driver: currentUser.name,
             driverPhone: currentUser.phone,
-            seatsAvailable: seats,
+            seatsAvailable: parseInt(seats),
             status: 'accepted'
         });
         
         alert('✅ قبلت المجموعة');
     } catch (error) {
-        alert('خطأ: ' + error.message);
+        alert('❌ ' + error.message);
     }
 }
 
-function switchTab(pageId, btn) {
+// ============ TAB SWITCHING ============
+function switchTabContent(pageId, btn) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
     
@@ -793,6 +790,5 @@ function switchTab(pageId, btn) {
 </script>
 </body>
 </html>
-
 
 
