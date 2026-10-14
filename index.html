@@ -1,224 +1,739 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yahia RideShare - v5</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet">
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-    font-family:'Cairo',sans-serif;
-    direction:rtl;
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    min-height:100vh;
-}
-header {
-    background:#000;
-    color:#fff;
-    padding:1rem;
-    text-align:center;
-}
-.container { max-width: 800px; margin: 0 auto; padding: 1rem; }
-.auth-box {
-    max-width: 400px;
-    margin: 2rem auto;
-    background: rgba(255,255,255,0.06);
-    backdrop-filter: blur(6px);
-    padding: 2rem;
-    border-radius: 12px;
-    color: #fff;
-}
-input, select, button {
-    width: 100%;
-    padding: 0.8rem;
-    margin: 0.5rem 0;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-family:'Cairo',sans-serif;
-    font-size: 14px;
-}
-button {
-    background: #111;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-}
-button:hover { background: #333; }
-.tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
-.tabs button { width: auto; padding: 0.6rem 1rem; background: #666; margin: 0; border-radius: 6px; }
-.tabs button.active { background: #111; }
-.page { display: none; }
-.page.active { display: block; }
-.card {
-    background: rgba(255,255,255,0.95);
-    color: #111;
-    padding: 1rem;
-    margin: 0.5rem 0;
-    border-radius: 10px;
-}
-.group-btn {
-    background: rgba(100,200,255,0.15);
-    color: #fff;
-    padding: 1rem;
-    margin: 0.5rem 0;
-    border: 2px solid #3498db;
-    border-radius: 10px;
-    cursor: pointer;
-    text-align: right;
-    font-size: 16px;
-    font-weight: bold;
-}
-.group-btn:hover { background: rgba(100,200,255,0.25); }
-.badge {
-    display: inline-block;
-    background: #e8f5e9;
-    color: #2e7d32;
-    padding: 0.3rem 0.6rem;
-    border-radius: 4px;
-    font-size: 12px;
-}
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #fff;
-    margin-bottom: 1rem;
-}
-.topbar button { width: auto; padding: 0.5rem 1rem; }
-.empty { text-align: center; padding: 2rem; opacity: 0.7; color: #fff; }
-.status { font-size: 12px; opacity: 0.8; color: #aaa; }
-.error { color: #e74c3c; font-size: 12px; }
-.success { color: #27ae60; font-size: 12px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#142245">
+    <title>Yahia RideShare</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Reem+Kufi:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #142245;
+            --ink-2: #26386a;
+            --paper: #f2f5fa;
+            --card: #ffffff;
+            --line: #dfe5ef;
+            --text: #1b2438;
+            --muted: #6a7489;
+            --yellow: #ffc21a;
+            --yellow-soft: #fff4cc;
+            --blue: #2f6fed;
+            --blue-soft: #e5edfe;
+            --coral: #e2553f;
+            --coral-soft: #fde6e1;
+            --orange: #d97a06;
+            --orange-soft: #fdefd9;
+            --green: #17885a;
+            --green-soft: #def3e8;
+            --r: 18px;
+            --shadow: 0 1px 2px rgba(20,34,69,.06), 0 8px 24px rgba(20,34,69,.06);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            direction: rtl;
+            color: var(--text);
+            background-color: var(--paper);
+            background-image:
+                linear-gradient(rgba(47,111,237,.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(47,111,237,.07) 1px, transparent 1px);
+            background-size: 22px 22px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button { font-family: inherit; }
+        h1, h2, h3, .brand, .brand-sm { font-family: 'Reem Kufi', sans-serif; font-weight: 700; }
+        :focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { animation: none !important; transition: none !important; }
+        }
+
+        /* ============ AUTH ============ */
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            padding: 2rem 16px;
+            background:
+                radial-gradient(circle at 85% 0%, rgba(255,194,26,.22), transparent 45%),
+                linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px),
+                var(--ink);
+            background-size: auto, 22px 22px, 22px 22px, auto;
+        }
+
+        .auth-hero { text-align: center; color: #fff; }
+        .brand { font-size: 46px; line-height: 1.1; }
+        .tagline { opacity: .75; margin-top: .4rem; font-size: 15px; }
+
+        .campus-chips { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center; margin-top: 1rem; }
+        .campus-chips span {
+            font-size: 12px;
+            padding: .3rem .75rem;
+            border: 1px solid rgba(255,255,255,.22);
+            border-radius: 999px;
+            color: rgba(255,255,255,.85);
+        }
+
+        .logo-mark {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            background: var(--yellow);
+            color: var(--ink);
+            display: grid; place-items: center;
+            flex-shrink: 0;
+        }
+        .logo-mark svg { width: 24px; height: 24px; }
+        .logo-mark.big {
+            width: 68px; height: 68px;
+            border-radius: 20px;
+            margin: 0 auto 1rem;
+            transform: rotate(-6deg);
+            box-shadow: 0 12px 30px rgba(255,194,26,.35);
+        }
+        .logo-mark.big svg { width: 38px; height: 38px; }
+
+        .auth-card {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 1.75rem 1.5rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 30px 60px rgba(0,0,0,.35);
+        }
+        .auth-card h2 { font-size: 24px; color: var(--ink); }
+        .sub { color: var(--muted); font-size: 14px; margin: .25rem 0 1.25rem; }
+
+        /* segmented control */
+        .role-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            background: #eaeef5;
+            padding: 4px;
+            border-radius: 14px;
+        }
+        .role-btn {
+            padding: .7rem;
+            border: 0;
+            background: transparent;
+            border-radius: 11px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--muted);
+            cursor: pointer;
+            transition: background .2s, color .2s;
+        }
+        .role-btn.active { background: #fff; color: var(--ink); box-shadow: 0 2px 6px rgba(20,34,69,.12); }
+
+        /* forms */
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-weight: 600; margin-bottom: .4rem; color: var(--ink-2); font-size: 13px; }
+
+        input, select {
+            width: 100%;
+            padding: .85rem 1rem;
+            border: 1.5px solid var(--line);
+            border-radius: 12px;
+            font: inherit;
+            font-size: 15px;
+            background: #fff;
+            color: var(--text);
+            transition: border-color .2s, box-shadow .2s;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px rgba(255,194,26,.35); }
+        input[readonly] { background: var(--yellow-soft); border-color: transparent; font-weight: 700; color: var(--ink); }
+        input[type="tel"], input[type="email"], input[type="password"] { direction: ltr; text-align: right; }
+
+        .btn {
+            width: 100%;
+            padding: .95rem;
+            background: var(--ink);
+            color: #fff;
+            border: 0;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background .2s, transform .1s;
+        }
+        .btn:hover { background: var(--ink-2); }
+        .btn:active { transform: scale(.98); }
+        .btn-accent { background: var(--yellow); color: var(--ink); }
+        .btn-accent:hover { background: #ffd04d; }
+
+        .btn-ghost {
+            background: #fff;
+            border: 1.5px solid var(--line);
+            color: var(--ink);
+            padding: .55rem 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .error {
+            display: none;
+            margin-top: .8rem;
+            padding: .7rem .9rem;
+            border-radius: 12px;
+            background: var(--coral-soft);
+            color: #a3301f;
+            font-size: 13px;
+        }
+        .error.show { display: block; }
+
+        /* ============ APP ============ */
+        .app-page { display: none; }
+        .app-page.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+        .topbar {
+            position: sticky; top: 0; z-index: 20;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: .75rem 16px;
+            background: rgba(242,245,250,.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--line);
+        }
+        .brand-row { display: flex; align-items: center; gap: .6rem; }
+        .brand-sm { font-size: 21px; color: var(--ink); line-height: 1; }
+        .brand-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+        .icon-btn {
+            display: flex; align-items: center; gap: .35rem;
+            background: #fff;
+            border: 1px solid var(--line);
+            color: var(--coral);
+            padding: .5rem .8rem;
+            border-radius: 12px;
+            font-weight: 600; font-size: 13px;
+            cursor: pointer;
+        }
+        .icon-btn svg { width: 16px; height: 16px; }
+
+        .container { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: 1rem 16px 120px; }
+
+        /* student ID card */
+        .id-card {
+            position: relative;
+            overflow: hidden;
+            background: var(--ink);
+            color: #fff;
+            border-radius: 22px;
+            padding: 1.1rem 1.2rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 12px 30px rgba(20,34,69,.25);
+        }
+        .id-card::after {
+            content: "";
+            position: absolute; left: -50px; top: -50px;
+            width: 180px; height: 180px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,194,26,.35), transparent 70%);
+        }
+        .id-top { display: flex; justify-content: space-between; font-size: 12px; opacity: .7; margin-bottom: .9rem; position: relative; z-index: 1; }
+        .id-body { display: flex; align-items: center; gap: .9rem; position: relative; z-index: 1; }
+        .avatar {
+            width: 54px; height: 54px;
+            border-radius: 16px;
+            background: var(--yellow);
+            color: var(--ink);
+            display: grid; place-items: center;
+            font-family: 'Reem Kufi', sans-serif;
+            font-size: 26px; font-weight: 700;
+            flex-shrink: 0;
+        }
+        .user-name { font-size: 20px; font-weight: 700; }
+        .user-role {
+            display: inline-block;
+            margin-top: .3rem;
+            font-size: 12px;
+            padding: .2rem .65rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,.13);
+        }
+        .id-stripe {
+            position: absolute; bottom: 0; right: 0; left: 0;
+            height: 6px;
+            background: repeating-linear-gradient(90deg, var(--yellow) 0 18px, transparent 18px 26px);
+        }
+
+        /* bottom nav */
+        .tabs {
+            position: fixed;
+            bottom: 12px; left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 24px);
+            max-width: 520px;
+            display: flex; gap: 4px;
+            padding: 6px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(20,34,69,.16);
+            z-index: 30;
+        }
+        .tab-btn {
+            flex: 1;
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            padding: .5rem .25rem;
+            border: 0;
+            background: transparent;
+            border-radius: 14px;
+            font-size: 12px; font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            transition: background .2s, color .2s;
+        }
+        .tab-btn .ti { font-size: 18px; line-height: 1.2; }
+        .tab-btn.active { background: var(--ink); color: #fff; }
+
+        /* pages */
+        .page { display: none; }
+        .page.active { display: block; animation: fade .25s ease; }
+        @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+        .section-head { margin-bottom: 1rem; }
+        .section-head h2 { font-size: 24px; color: var(--ink); }
+        .section-head p { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+        .list { display: flex; flex-direction: column; gap: .9rem; }
+
+        /* ride / request cards */
+        .ride {
+            position: relative;
+            overflow: hidden;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--r);
+            padding: 1.1rem 1.25rem 1.1rem 1.1rem;
+            box-shadow: var(--shadow);
+        }
+        .ride::before { content: ""; position: absolute; top: 0; right: 0; width: 5px; height: 100%; background: var(--blue); }
+        .ride.return::before { background: var(--coral); }
+        .ride.request::before { background: var(--orange); }
+
+        .ride-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+        .ride-dest { font-size: 20px; color: var(--ink); margin-top: .45rem; }
+        .ride-dir { font-size: 13px; color: var(--muted); }
+
+        .price { text-align: center; background: var(--yellow-soft); border-radius: 14px; padding: .5rem .75rem; min-width: 86px; }
+        .price b { display: block; font-size: 20px; color: var(--ink); font-family: 'Reem Kufi', sans-serif; }
+        .price span { font-size: 11px; color: var(--muted); }
+
+        .badge { display: inline-block; padding: .2rem .65rem; border-radius: 999px; font-size: 11px; font-weight: 700; }
+        .badge.outgoing { background: var(--blue-soft); color: var(--blue); }
+        .badge.return { background: var(--coral-soft); color: var(--coral); }
+        .badge.request { background: var(--orange-soft); color: var(--orange); }
+        .badge.available { background: var(--green-soft); color: var(--green); }
+        .badge.done { background: #eceff4; color: var(--muted); }
+
+        .ride-meta { display: flex; flex-wrap: wrap; gap: .4rem; margin: .9rem 0 .75rem; }
+        .chip { font-size: 13px; padding: .3rem .65rem; border-radius: 10px; background: #eef2f8; color: var(--ink-2); font-weight: 500; }
+        .chip.ok { background: var(--green-soft); color: var(--green); }
+        .chip.full { background: var(--coral-soft); color: var(--coral); }
+
+        .seats { display: flex; gap: 5px; margin-bottom: .9rem; }
+        .seat { width: 22px; height: 8px; border-radius: 4px; background: var(--green-soft); border: 1px solid #b9e2cc; }
+        .seat.taken { background: var(--ink); border-color: var(--ink); }
+
+        .driver { display: flex; align-items: center; gap: .6rem; padding-top: .8rem; border-top: 1px dashed var(--line); margin-bottom: .9rem; }
+        .avatar.sm { width: 38px; height: 38px; border-radius: 11px; font-size: 17px; }
+        .driver-name { font-weight: 600; font-size: 14px; }
+        .driver-phone { font-size: 12px; color: var(--muted); direction: ltr; text-align: right; }
+        .call {
+            margin-right: auto;
+            text-decoration: none;
+            font-size: 13px; font-weight: 600;
+            color: var(--green);
+            background: var(--green-soft);
+            padding: .45rem .75rem;
+            border-radius: 10px;
+        }
+        .ride-foot { font-size: 13px; color: var(--muted); padding-top: .75rem; border-top: 1px dashed var(--line); }
+
+        .progress { margin-bottom: .9rem; }
+        .progress-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: .35rem; }
+        .bar { height: 8px; background: #e6ebf3; border-radius: 999px; overflow: hidden; }
+        .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--orange), var(--yellow)); border-radius: 999px; }
+
+        /* tickets (boarding pass) */
+        .ticket {
+            display: flex;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--r);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        .ticket-main { flex: 1; padding: 1rem 1.1rem; min-width: 0; }
+        .ticket-label { font-size: 12px; color: var(--muted); }
+        .ticket-dest { font-family: 'Reem Kufi', sans-serif; font-size: 21px; font-weight: 700; color: var(--ink); margin: .15rem 0 .75rem; }
+        .ticket-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+        .ticket-grid small { display: block; font-size: 11px; color: var(--muted); }
+        .ticket-grid span { font-weight: 600; font-size: 13px; word-break: break-word; }
+        .ticket-stub {
+            position: relative;
+            width: 96px;
+            background: var(--yellow);
+            border-right: 2px dashed rgba(20,34,69,.35);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .2rem;
+            text-align: center;
+            color: var(--ink);
+        }
+        .ticket-stub::before, .ticket-stub::after {
+            content: "";
+            position: absolute; right: -9px;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: var(--paper);
+        }
+        .ticket-stub::before { top: -8px; }
+        .ticket-stub::after { bottom: -8px; }
+        .ticket-stub b { font-family: 'Reem Kufi', sans-serif; font-size: 24px; line-height: 1; }
+        .ticket-stub span { font-size: 11px; }
+        .ticket-stub em { font-style: normal; font-size: 11px; font-weight: 700; background: var(--ink); color: var(--yellow); padding: .15rem .5rem; border-radius: 999px; margin-top: .3rem; }
+
+        /* university groups */
+        .uni-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+        .uni-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--r);
+            padding: 1rem;
+            text-align: right;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: border-color .2s, transform .2s;
+        }
+        .uni-card:hover { border-color: var(--ink); transform: translateY(-2px); }
+        .uni-mark {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            display: grid; place-items: center;
+            font-family: 'Reem Kufi', sans-serif;
+            font-size: 22px; font-weight: 700;
+            margin-bottom: .7rem;
+        }
+        .uni-name { font-weight: 700; font-size: 15px; color: var(--ink); }
+        .uni-hint { font-size: 12px; color: var(--muted); }
+
+        .group-title { font-size: 22px; color: var(--ink); margin: 1rem 0 .8rem; }
+        .sub-title { font-size: 16px; font-weight: 700; color: var(--ink); margin: 1.75rem 0 .8rem; }
+
+        .form-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 1.25rem; box-shadow: var(--shadow); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 .8rem; margin-bottom: .5rem; }
+        .span-2 { grid-column: 1 / -1; }
+        @media (max-width: 360px) { .form-grid { grid-template-columns: 1fr; } }
+
+        .empty {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            background: rgba(255,255,255,.7);
+            border: 1.5px dashed #cdd6e4;
+            border-radius: var(--r);
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .empty .e-icon { font-size: 34px; margin-bottom: .4rem; }
+        .empty b { display: block; color: var(--ink); margin-bottom: .2rem; font-size: 15px; }
+
+        /* toast */
+        .toast {
+            position: fixed;
+            top: 16px; left: 50%;
+            transform: translate(-50%, -20px);
+            background: var(--ink);
+            color: #fff;
+            padding: .75rem 1.1rem;
+            border-radius: 14px;
+            font-size: 14px; font-weight: 600;
+            box-shadow: 0 12px 30px rgba(0,0,0,.25);
+            opacity: 0;
+            transition: opacity .3s, transform .3s;
+            z-index: 100;
+            max-width: calc(100% - 32px);
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, 0); }
+        .toast.err { background: var(--coral); }
+
+        /* states */
+        .hidden { display: none !important; }
+        .booting .auth-card { visibility: hidden; }
+        .btn:disabled { opacity: .6; cursor: progress; transform: none; }
+        .auth-switch { margin-bottom: 1.25rem; }
+        .booked {
+            text-align: center;
+            padding: .8rem;
+            border-radius: 14px;
+            background: var(--green-soft);
+            color: var(--green);
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .booked.muted { background: #eceff4; color: var(--muted); }
+        .ticket.past { opacity: .55; filter: grayscale(.6); }
+        .ticket-call { display: inline-block; margin-top: .6rem; font-size: 12px; font-weight: 600; color: var(--green); text-decoration: none; }
+        .ride-foot b { color: var(--ink-2); font-weight: 600; }
+    </style>
 </head>
-<body>
-<header>
-<h1>Yahia RideShare - v5</h1>
-</header>
+<body class="booting">
 
-<!-- AUTH -->
-<div id="authBox" class="auth-box">
-<div style="display: flex; gap: 10px; margin-bottom: 1.5rem;">
-  <button onclick="switchAuthTab('signup')" id="signupTab" style="width: 50%; background: #111;">إنشاء</button>
-  <button onclick="switchAuthTab('login')" id="loginTab" style="width: 50%; background: #666;">دخول</button>
-</div>
+<!-- AUTH PAGE -->
+<div id="authPage" class="auth-page">
+    <div class="auth-hero">
+        <div class="logo-mark big">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/><path d="M22 10v6"/></svg>
+        </div>
+        <h1 class="brand">يحيى</h1>
+        <p class="tagline">تنقّل مشترك بين طلاب جامعات عنابة</p>
+        <div class="campus-chips">
+            <span>سيدي عمار</span><span>البوني</span><span>سيدي عاشور</span><span>كوبا</span>
+        </div>
+    </div>
 
-<div id="signupForm">
-  <input id="signupName" placeholder="الاسم الكامل">
-  <input id="signupPhone" placeholder="الهاتف (10-12)">
-  <input id="signupEmail" type="email" placeholder="البريد الإلكتروني">
-  <input id="signupPassword" type="password" placeholder="كلمة السر (6+)">
-  <input id="signupPasswordConfirm" type="password" placeholder="تأكيد السر">
-  <div style="margin: 1rem 0;">
-    <label><input type="radio" name="role" value="راكب" checked> راكب</label>
-    <label style="margin-right: 1rem;"><input type="radio" name="role" value="سائق"> سائق</label>
-  </div>
-  <button onclick="signup()">إنشاء الحساب</button>
-  <p id="signupError" class="error"></p>
-</div>
+    <div class="auth-card">
+        <h2>أهلًا بك 👋</h2>
+        <p class="sub" id="authSub">سجّل دخولك لمتابعة رحلاتك</p>
 
-<div id="loginForm" style="display: none;">
-  <input id="loginEmail" type="email" placeholder="البريد الإلكتروني">
-  <input id="loginPassword" type="password" placeholder="كلمة السر">
-  <button onclick="login()">دخول</button>
-  <p id="loginError" class="error"></p>
-</div>
-</div>
+        <div class="role-selector auth-switch">
+            <button type="button" class="role-btn active" id="modeLogin" onclick="setAuthMode('login', this)">دخول</button>
+            <button type="button" class="role-btn" id="modeSignup" onclick="setAuthMode('signup', this)">حساب جديد</button>
+        </div>
 
-<!-- APP -->
-<div id="appBox" style="display: none;">
-<div class="container">
-<div class="topbar">
-  <div>
-    <h3 id="userName" style="font-size: 18px;"></h3>
-    <p id="locationStatus" class="status"></p>
-  </div>
-  <button onclick="logout()">خروج</button>
-</div>
+        <form id="authForm" onsubmit="handleAuth(event)" novalidate>
+            <div class="form-group signup-only hidden">
+                <label>أنا</label>
+                <div class="role-selector">
+                    <button type="button" class="role-btn active" onclick="selectRole('راكب', this)">👤 راكب</button>
+                    <button type="button" class="role-btn" onclick="selectRole('سائق', this)">🚙 سائق</button>
+                </div>
+            </div>
 
-<!-- ============ PASSENGER ============ -->
-<div id="passengerNav" style="display: none;">
-<div class="tabs">
-  <button class="tab-btn active" onclick="switchTabContent('pRides', this)">🚗 الرحلات</button>
-  <button class="tab-btn" onclick="switchTabContent('pGroups', this)">👥 المجموعات</button>
-</div>
+            <div class="form-group signup-only hidden">
+                <label for="authName">الاسم</label>
+                <input id="authName" type="text" placeholder="اسمك الكامل" autocomplete="name">
+            </div>
+            <div class="form-group signup-only hidden">
+                <label for="authPhone">رقم الهاتف</label>
+                <input id="authPhone" type="tel" placeholder="0555123456" autocomplete="tel">
+            </div>
+            <div class="form-group">
+                <label for="authEmail">البريد الإلكتروني</label>
+                <input id="authEmail" type="email" placeholder="name@email.com" autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="authPassword">كلمة السر</label>
+                <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password">
+            </div>
 
-<!-- Rides Page -->
-<div id="pRides" class="page active">
-<h3>الرحلات المتاحة</h3>
-<div id="ridesList" class="empty">جاري التحميل...</div>
+            <button type="submit" class="btn" id="authSubmit">دخول</button>
+            <p id="authError" class="error"></p>
+        </form>
+    </div>
 </div>
 
-<!-- Groups List -->
-<div id="pGroups" class="page">
-<h3>مجموعات الجامعات</h3>
-<div id="groupsList"></div>
+<!-- APP PAGE -->
+<div id="appPage" class="app-page">
+    <header class="topbar">
+        <div class="brand-row">
+            <div class="logo-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/><path d="M22 10v6"/></svg>
+            </div>
+            <div>
+                <div class="brand-sm">يحيى</div>
+                <div class="brand-sub">تنقّل جامعي في عنابة</div>
+            </div>
+        </div>
+        <button class="icon-btn" onclick="logout()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h12"/></svg>
+            خروج
+        </button>
+    </header>
+
+    <div class="container">
+        <div class="id-card">
+            <div class="id-top">
+                <span>بطاقة التنقّل الجامعي</span>
+                <span id="displayYear"></span>
+            </div>
+            <div class="id-body">
+                <div class="avatar" id="displayAvatar"></div>
+                <div>
+                    <div class="user-name" id="displayName"></div>
+                    <div class="user-role" id="displayRole"></div>
+                </div>
+            </div>
+            <div class="id-stripe"></div>
+        </div>
+
+        <!-- DRIVER SECTION -->
+        <div id="driverSection" style="display: none;">
+            <nav class="tabs">
+                <button class="tab-btn active" data-page="dMyRides" onclick="switchTab('dMyRides', this)"><span class="ti">🚗</span>رحلاتي</button>
+                <button class="tab-btn" data-page="dCreate" onclick="switchTab('dCreate', this)"><span class="ti">➕</span>رحلة جديدة</button>
+                <button class="tab-btn" data-page="dRequests" onclick="switchTab('dRequests', this)"><span class="ti">📋</span>الطلبات</button>
+            </nav>
+
+            <div id="dMyRides" class="page active">
+                <div class="section-head">
+                    <h2>رحلاتي النشطة</h2>
+                    <p>الرحلات التي أنشأتها ومن حجز فيها</p>
+                </div>
+                <div id="dRidesList" class="list"></div>
+            </div>
+
+            <div id="dCreate" class="page">
+                <div class="section-head">
+                    <h2>رحلة جديدة</h2>
+                    <p>حدّد الوجهة والموعد، ويُحسب سعر المقعد تلقائيًا</p>
+                </div>
+                <div class="form-card">
+                    <form id="rideForm" onsubmit="createRide(event)" novalidate>
+                        <div class="form-group">
+                            <label>الاتجاه</label>
+                            <div class="role-selector">
+                                <button type="button" class="role-btn active" id="tripDefault" onclick="selectTripType('ذهاب', this)">🔵 ذهاب للجامعة</button>
+                                <button type="button" class="role-btn" onclick="selectTripType('عودة', this)">🔴 عودة منها</button>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group span-2">
+                                <label for="destination">الجامعة</label>
+                                <select id="destination" required>
+                                    <option value="">اختر الجامعة</option>
+                                    <option>سيدي عمار</option>
+                                    <option>البوني</option>
+                                    <option>سيدي عاشور</option>
+                                    <option>كوبا</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="rideDate">التاريخ</label>
+                                <input id="rideDate" type="date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="rideTime">الساعة</label>
+                                <input id="rideTime" type="time" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="seats">عدد المقاعد</label>
+                                <select id="seats" onchange="calcTicketPrice()" required>
+                                    <option value="2">2 مقاعد</option>
+                                    <option value="3" selected>3 مقاعد</option>
+                                    <option value="4">4 مقاعد</option>
+                                    <option value="5">5 مقاعد</option>
+                                    <option value="6">6 مقاعد</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="totalPrice">السعر الكلي (دج)</label>
+                                <input id="totalPrice" type="number" min="0" placeholder="600" oninput="calcTicketPrice()" required>
+                            </div>
+                            <div class="form-group span-2">
+                                <label for="ticketPrice">سعر المقعد الواحد</label>
+                                <input id="ticketPrice" type="text" placeholder="—" readonly>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn">نشر الرحلة</button>
+                        <p id="createError" class="error"></p>
+                    </form>
+                </div>
+            </div>
+
+            <div id="dRequests" class="page">
+                <div class="section-head">
+                    <h2>طلبات الطلاب</h2>
+                    <p>مجموعات تبحث عن سائق، تولَّ ما يناسبك</p>
+                </div>
+                <div id="dRequestsList" class="list"></div>
+            </div>
+        </div>
+
+        <!-- PASSENGER SECTION -->
+        <div id="passengerSection" style="display: none;">
+            <nav class="tabs">
+                <button class="tab-btn active" data-page="pRides" onclick="switchTab('pRides', this)"><span class="ti">🚗</span>الرحلات</button>
+                <button class="tab-btn" data-page="pMyRequests" onclick="switchTab('pMyRequests', this)"><span class="ti">📝</span>طلباتي</button>
+                <button class="tab-btn" data-page="pGroups" onclick="switchTab('pGroups', this)"><span class="ti">🎓</span>الجامعات</button>
+                <button class="tab-btn" data-page="pTickets" onclick="switchTab('pTickets', this)"><span class="ti">🎫</span>تذاكري</button>
+            </nav>
+
+            <div id="pRides" class="page active">
+                <div class="section-head">
+                    <h2>رحلات متاحة</h2>
+                    <p>احجز مقعدك مع طلاب متجهين لنفس الجامعة</p>
+                </div>
+                <div id="pRidesList" class="list"></div>
+            </div>
+
+            <div id="pMyRequests" class="page">
+                <div class="section-head">
+                    <h2>طلباتي</h2>
+                    <p>طلبات أنشأتها أو انضممت إليها</p>
+                </div>
+                <div id="pMyRequestsList" class="list"></div>
+            </div>
+
+            <div id="pGroups" class="page">
+                <div class="section-head">
+                    <h2>مجموعات الجامعات</h2>
+                    <p>لا توجد رحلة مناسبة؟ اجمع زملاءك واطلب سائقًا</p>
+                </div>
+                <div id="groupsList" class="uni-grid"></div>
+                <div id="groupDetail" style="display: none;">
+                    <button class="btn-ghost" onclick="backToGroups()">→ كل الجامعات</button>
+                    <h3 id="groupTitle" class="group-title"></h3>
+                    <div id="groupRequests" class="list"></div>
+
+                    <h4 class="sub-title">طلب جديد</h4>
+                    <form id="reqForm" onsubmit="createRequest(event)" class="form-card" novalidate>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="reqDate">التاريخ</label>
+                                <input id="reqDate" type="date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reqTime">الساعة</label>
+                                <input id="reqTime" type="time" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reqPeople">عدد الركاب</label>
+                                <input id="reqPeople" type="number" min="2" value="3" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reqBudget">الميزانية الكلية (دج)</label>
+                                <input id="reqBudget" type="number" min="0" placeholder="600" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">إنشاء الطلب</button>
+                        <p id="reqError" class="error"></p>
+                    </form>
+                </div>
+            </div>
+
+            <div id="pTickets" class="page">
+                <div class="section-head">
+                    <h2>تذاكري</h2>
+                    <p>اعرضها على السائق عند الركوب</p>
+                </div>
+                <div id="pTicketsList" class="list"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Group Detail -->
-<div id="pGroupDetail" class="page">
-<button onclick="backToGroups()" style="margin-bottom: 1rem;">← رجوع</button>
-<h3 id="groupTitle"></h3>
-<div id="groupRequests"></div>
-<hr style="border: 1px solid #666; margin: 1.5rem 0;">
-<h4 style="color: #fff; margin-bottom: 1rem;">📝 إنشاء طلب رحلة</h4>
-<input id="reqDay" type="date">
-<input id="reqTime" type="time">
-<input id="reqSeats" type="number" placeholder="عدد الركاب (3-7)" min="3" max="7" value="3">
-<input id="reqBudget" type="number" placeholder="الميزانية الإجمالية">
-<button onclick="createRequest()">إنشاء الطلب</button>
-<p id="reqError" class="error" style="margin-top: 0.5rem;"></p>
-</div>
-</div>
-
-<!-- ============ DRIVER ============ -->
-<div id="driverNav" style="display: none;">
-<div class="tabs">
-  <button class="tab-btn active" onclick="switchTabContent('dCreate', this)">➕ إنشاء رحلة</button>
-  <button class="tab-btn" onclick="switchTabContent('dMyRides', this)">🚗 رحلاتي</button>
-  <button class="tab-btn" onclick="switchTabContent('dRequests', this)">📋 الطلبات</button>
-</div>
-
-<!-- Create -->
-<div id="dCreate" class="page active">
-<h3>إنشاء رحلة جديدة</h3>
-<select id="dUniversity">
-  <option value="">اختر الجامعة</option>
-  <option>جامعة باجي مختار – سيدي عمار</option>
-  <option>جامعة باجي مختار – البوني</option>
-  <option>جامعة باجي مختار – سيدي عاشور</option>
-  <option>كلية الطب – كوبا</option>
-  <option>المدرسة العليا للتكنولوجيا – سيدي عمار</option>
-  <option>المدرسة العليا لعلوم التسيير – عنابة</option>
-  <option>المدرسة العليا للأساتذة – عنابة</option>
-</select>
-<input id="dDay" type="date">
-<input id="dTime" type="time">
-<input id="dSeats" type="number" placeholder="المقاعد (2-7)" min="2" max="7" value="3">
-<input id="dPrice" type="number" placeholder="السعر الكلي">
-<button onclick="createRide()" style="background: #27ae60; margin-top: 1rem;">إنشاء الرحلة</button>
-<p id="dError" class="error" style="margin-top: 0.5rem;"></p>
-</div>
-
-<!-- My Rides -->
-<div id="dMyRides" class="page">
-<h3>رحلاتي</h3>
-<div id="myRidesList" class="empty">لا توجد رحلات</div>
-</div>
-
-<!-- Requests -->
-<div id="dRequests" class="page">
-<h3>طلبات المجموعات</h3>
-<div id="requestsList" class="empty">لا توجد طلبات قريبة</div>
-</div>
-</div>
-
-</div>
-</div>
-
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
@@ -233,562 +748,866 @@ const firebaseConfig = {
   appId: "1:137329248871:web:68968328e4b0eb59e3a2c2"
 };
 
+// Firebase SDK failed to load (no internet / blocked CDN)
+if (typeof firebase === 'undefined') {
+    document.body.classList.remove('booting');
+    showError('authError', 'تعذّر تحميل التطبيق، تحقق من اتصالك بالإنترنت ثم أعد تحميل الصفحة');
+    throw new Error('Firebase SDK not loaded');
+}
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
+const UNIVERSITIES = ['سيدي عمار', 'البوني', 'سيدي عاشور', 'كوبا'];
+const GRACE_MS = 60 * 60 * 1000; // a ride stays visible 1h after its start time
+const TS = () => firebase.firestore.FieldValue.serverTimestamp();
+
 let currentUser = null;
 let currentRole = null;
-let userLocation = { lat: 36.8865, lng: 7.7385 }; // عنابة default
-let rides = [];
-let requests = [];
-let selectedGroupName = null;
+let authMode = 'login';
+let selectedRole = 'راكب';
+let selectedTripType = 'ذهاب';
+let selectedGroup = null;
+let authBusy = false;
+let entering = false;
 
-const universities = {
-  "جامعة باجي مختار – سيدي عمار": [36.879, 7.725],
-  "جامعة باجي مختار – البوني": [36.871, 7.755],
-  "جامعة باجي مختار – سيدي عاشور": [36.900, 7.780],
-  "كلية الطب – كوبا": [36.902, 7.763],
-  "المدرسة العليا للتكنولوجيا – سيدي عمار": [36.875, 7.720],
-  "المدرسة العليا لعلوم التسيير – عنابة": [36.895, 7.740],
-  "المدرسة العليا للأساتذة – عنابة": [36.890, 7.750]
-};
+// Error with a message meant for the user (thrown inside transactions)
+class UserError extends Error {}
 
-function calcDist(lat1, lon1, lat2, lon2) {
-    const R = 6371000;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+// ============ LIVE LISTENERS (one per key, never duplicated) ============
+const listeners = {};
+
+function listen(key, query, onData) {
+    stopListen(key);
+    listeners[key] = query.onSnapshot(onData, error => {
+        console.error(key, error);
+        toast('❌ ' + translateError(error), true);
+    });
+}
+
+function stopListen(key) {
+    if (listeners[key]) {
+        listeners[key]();
+        delete listeners[key];
+    }
+}
+
+function stopAllListeners() {
+    Object.keys(listeners).forEach(stopListen);
+}
+
+// ============ UI HELPERS ============
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function initial(name) {
+    return esc((name || '?').trim().charAt(0) || '?');
+}
+
+function toast(msg, isErr = false) {
+    const t = document.createElement('div');
+    t.className = 'toast' + (isErr ? ' err' : '');
+    t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => {
+        t.classList.remove('show');
+        setTimeout(() => t.remove(), 300);
+    }, 2800);
+}
+
+function showError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = '❌ ' + msg;
+    el.classList.add('show');
+}
+
+function hideError(id) {
+    document.getElementById(id).classList.remove('show');
+}
+
+function emptyHTML(icon, title, hint) {
+    return `<div class="empty"><div class="e-icon">${icon}</div><b>${title}</b>${hint ? `<span>${hint}</span>` : ''}</div>`;
+}
+
+function setLoading(id) {
+    document.getElementById(id).innerHTML = emptyHTML('⏳', 'جاري التحميل…');
+}
+
+function typeClass(t) {
+    if (t === 'عودة') return 'return';
+    if (t === 'من طلب') return 'request';
+    return 'outgoing';
+}
+
+function dirLabel(t) {
+    if (t === 'عودة') return 'عودة من الجامعة';
+    if (t === 'من طلب') return 'رحلة من طلب مجموعة';
+    return 'ذهاب إلى الجامعة';
+}
+
+function rideTs(date, time) {
+    const t = new Date(`${date}T${time || '00:00'}`).getTime();
+    return isNaN(t) ? 0 : t;
+}
+
+function isUpcoming(x) {
+    return rideTs(x.date, x.time) >= Date.now() - GRACE_MS;
+}
+
+function byDate(a, b) {
+    return rideTs(a.date, a.time) - rideTs(b.date, b.time);
+}
+
+function fmtDate(date) {
+    const d = new Date(`${date}T00:00`);
+    if (isNaN(d)) return esc(date);
+    try {
+        return esc(d.toLocaleDateString('ar-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' }));
+    } catch (e) {
+        return esc(date);
+    }
+}
+
+function todayStr() {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 10);
+}
+
+function docsOf(snap) {
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+function isBooked(r, uid) {
+    return (r.passengers || []).some(p => p.uid === uid);
+}
+
+// Disables a button while an async action runs (prevents double taps)
+async function withBusy(btn, fn) {
+    if (btn && btn.disabled) return;
+    if (btn) btn.disabled = true;
+    try {
+        await fn();
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+function seatDots(total, left) {
+    total = Math.max(0, parseInt(total) || 0);
+    const taken = Math.min(total, Math.max(0, total - (parseInt(left) || 0)));
+    let h = '';
+    for (let i = 0; i < total; i++) h += `<span class="seat ${i < taken ? 'taken' : ''}"></span>`;
+    return `<div class="seats">${h}</div>`;
+}
+
+function progressHTML(count, needed) {
+    needed = parseInt(needed) || 0;
+    const pct = needed > 0 ? Math.min(100, Math.round(count / needed * 100)) : 0;
+    return `
+        <div class="progress">
+            <div class="progress-top"><span>👥 ${count} من ${needed} انضموا</span><span>${pct}%</span></div>
+            <div class="bar"><i style="width:${pct}%"></i></div>
+        </div>`;
+}
+
+function rideCard(r, o = {}) {
+    const cls = typeClass(r.tripType);
+    const left = Math.max(0, Number(r.seatsLeft) || 0);
+    const passengers = r.passengers || [];
+    let footer;
+    if (o.showDriver) {
+        footer = `
+        <div class="driver">
+            <div class="avatar sm">${initial(r.driver)}</div>
+            <div>
+                <div class="driver-name">${esc(r.driver)}</div>
+                <div class="driver-phone">${r.driverPhone ? esc(r.driverPhone) : 'الهاتف غير متوفر'}</div>
+            </div>
+            ${r.driverPhone ? `<a class="call" href="tel:${esc(r.driverPhone)}">📞 اتصال</a>` : ''}
+        </div>`;
+    } else {
+        footer = passengers.length
+            ? `<div class="ride-foot">👥 ${passengers.length} راكب: <b>${passengers.map(p => esc(p.name)).join('، ')}</b></div>`
+            : `<div class="ride-foot">لم يحجز أحد بعد</div>`;
+    }
+
+    return `
+        <div class="ride ${cls}">
+            <div class="ride-head">
+                <div>
+                    <span class="badge ${cls}">${esc(r.tripType)}</span>
+                    <h3 class="ride-dest">🎓 ${esc(r.destination)}</h3>
+                    <div class="ride-dir">${dirLabel(r.tripType)}</div>
+                </div>
+                <div class="price"><b>${esc(r.ticketPrice)}</b><span>دج للمقعد</span></div>
+            </div>
+            <div class="ride-meta">
+                <span class="chip">📅 ${fmtDate(r.date)}</span>
+                <span class="chip">⏰ ${esc(r.time)}</span>
+                <span class="chip ${left > 0 ? 'ok' : 'full'}">💺 ${left > 0 ? left + ' متاح' : 'ممتلئة'}</span>
+            </div>
+            ${seatDots(r.seats, left)}
+            ${footer}
+            ${o.action || ''}
+        </div>`;
+}
+
+function requestCard(r, o = {}) {
+    const count = (r.members || []).length;
+    const needed = parseInt(r.seatsNeeded) || count;
+    const perPerson = needed > 0 ? Math.round((Number(r.budget) || 0) / needed) : 0;
+    return `
+        <div class="ride request">
+            <div class="ride-head">
+                <div>
+                    ${o.badge || '<span class="badge request">طلب مجموعة</span>'}
+                    <h3 class="ride-dest">🎓 ${esc(o.title || r.university)}</h3>
+                    <div class="ride-dir">${esc(o.subtitle || ('المنظّم: ' + r.organizer))}</div>
+                </div>
+                <div class="price"><b>${esc(r.budget)}</b><span>دج للمجموعة</span></div>
+            </div>
+            <div class="ride-meta">
+                <span class="chip">📅 ${fmtDate(r.date)}</span>
+                <span class="chip">⏰ ${esc(r.time)}</span>
+                <span class="chip">≈ ${perPerson} دج للفرد</span>
+            </div>
+            ${o.hideProgress ? '' : progressHTML(count, needed)}
+            ${o.action || ''}
+        </div>`;
+}
+
+function translateError(error) {
+    if (error instanceof UserError) return error.message;
+    const code = String((error && (error.code || error.message)) || '');
+    const map = [
+        ['email-already-in-use', 'هذا البريد مسجل بالفعل، اختر "دخول"'],
+        ['invalid-email', 'البريد الإلكتروني غير صحيح'],
+        ['weak-password', 'كلمة السر ضعيفة (6 أحرف على الأقل)'],
+        ['missing-password', 'أدخل كلمة السر'],
+        ['invalid-credential', 'البريد الإلكتروني أو كلمة السر غير صحيحة'],
+        ['invalid-login-credentials', 'البريد الإلكتروني أو كلمة السر غير صحيحة'],
+        ['user-not-found', 'لا يوجد حساب بهذا البريد، اختر "حساب جديد"'],
+        ['wrong-password', 'كلمة السر غير صحيحة'],
+        ['user-disabled', 'هذا الحساب موقوف'],
+        ['too-many-requests', 'محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة'],
+        ['network-request-failed', 'لا يوجد اتصال بالإنترنت'],
+        ['unavailable', 'تعذّر الاتصال بالخادم، تحقق من الإنترنت'],
+        ['permission-denied', 'ليست لديك صلاحية لهذه العملية'],
+        ['failed-precondition', 'تعذّر تنفيذ العملية، أعد تحميل الصفحة']
+    ];
+    for (const [k, v] of map) if (code.includes(k)) return v;
+    return 'حدث خطأ، حاول مرة أخرى';
 }
 
 // ============ AUTH ============
-function switchAuthTab(mode) {
-    document.getElementById('signupForm').style.display = mode === 'signup' ? 'block' : 'none';
-    document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
-    document.getElementById('signupTab').style.background = mode === 'signup' ? '#111' : '#666';
-    document.getElementById('loginTab').style.background = mode === 'login' ? '#111' : '#666';
+function setAuthMode(mode, btn) {
+    authMode = mode;
+    btn.parentElement.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const signup = mode === 'signup';
+    document.querySelectorAll('.signup-only').forEach(el => el.classList.toggle('hidden', !signup));
+    document.getElementById('authPassword').autocomplete = signup ? 'new-password' : 'current-password';
+    document.getElementById('authSubmit').textContent = signup ? 'إنشاء الحساب' : 'دخول';
+    document.getElementById('authSub').textContent = signup ? 'أنشئ حسابك في أقل من دقيقة' : 'سجّل دخولك لمتابعة رحلاتك';
+    hideError('authError');
 }
 
-async function signup() {
-    const name = document.getElementById('signupName').value.trim();
-    const phone = document.getElementById('signupPhone').value.trim();
-    const email = document.getElementById('signupEmail').value.trim();
-    const password = document.getElementById('signupPassword').value;
-    const confirmPassword = document.getElementById('signupPasswordConfirm').value;
-    const role = document.querySelector('input[name="role"]:checked').value;
-    
-    const err = document.getElementById('signupError');
-    err.textContent = '';
+function selectRole(role, btn) {
+    selectedRole = role;
+    btn.parentElement.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
 
-    if (!name || !phone || !email || !password || !confirmPassword) {
-        err.textContent = '❌ أكمل جميع الحقول';
-        return;
-    }
-    if (!/^\d{10,12}$/.test(phone)) {
-        err.textContent = '❌ رقم صحيح (10-12 أرقام)';
-        return;
-    }
-    if (password !== confirmPassword) {
-        err.textContent = '❌ كلمات السر غير متطابقة';
-        return;
-    }
-    if (password.length < 6) {
-        err.textContent = '❌ كلمة السر: 6 أحرف على الأقل';
-        return;
+function selectTripType(type, btn) {
+    selectedTripType = type;
+    btn.parentElement.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+async function handleAuth(e) {
+    e.preventDefault();
+    const btn = document.getElementById('authSubmit');
+    const name = document.getElementById('authName').value.trim();
+    const phone = document.getElementById('authPhone').value.replace(/[\s-]/g, '');
+    const email = document.getElementById('authEmail').value.trim().toLowerCase();
+    const password = document.getElementById('authPassword').value;
+    hideError('authError');
+
+    if (!email || !password) return showError('authError', 'أدخل البريد الإلكتروني وكلمة السر');
+    if (authMode === 'signup') {
+        if (name.length < 2) return showError('authError', 'أدخل اسمك');
+        if (!/^\+?\d{9,13}$/.test(phone)) return showError('authError', 'رقم الهاتف غير صحيح');
+        if (password.length < 6) return showError('authError', 'كلمة السر 6 أحرف على الأقل');
     }
 
+    await withBusy(btn, async () => {
+        authBusy = true;
+        let createdUser = null;
+        try {
+            let uid;
+            if (authMode === 'signup') {
+                const res = await auth.createUserWithEmailAndPassword(email, password);
+                createdUser = res.user;
+                uid = res.user.uid;
+                await db.collection('users').doc(uid).set({
+                    uid, name, phone, email, role: selectedRole,
+                    balance: 0, earnings: 0,
+                    createdAt: TS()
+                });
+                createdUser = null; // profile saved
+            } else {
+                const res = await auth.signInWithEmailAndPassword(email, password);
+                uid = res.user.uid;
+            }
+            await enterWithUser(uid);
+        } catch (error) {
+            // account created but profile not saved → remove it so the email stays usable
+            if (createdUser) {
+                try { await createdUser.delete(); } catch (_) { await auth.signOut().catch(() => {}); }
+            }
+            showError('authError', translateError(error));
+        } finally {
+            authBusy = false;
+        }
+    });
+}
+
+// Single entry point: loads the profile once and opens the app
+async function enterWithUser(uid) {
+    if (entering || currentUser) return;
+    entering = true;
     try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-
-        await db.collection('users').doc(user.uid).set({
-            uid: user.uid,
-            name: name,
-            phone: phone,
-            email: email,
-            role: role,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        currentUser = { uid: user.uid, name: name, phone: phone };
-        currentRole = role;
-        getLocation();
-    } catch (error) {
-        err.textContent = '❌ ' + error.message;
-    }
-}
-
-async function login() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    
-    const err = document.getElementById('loginError');
-    err.textContent = '';
-
-    if (!email || !password) {
-        err.textContent = '❌ ادخل البريد وكلمة السر';
-        return;
-    }
-
-    try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        const userData = userDoc.data();
-
-        currentUser = { uid: user.uid, name: userData.name, phone: userData.phone };
-        currentRole = userData.role;
-        getLocation();
-    } catch (error) {
-        err.textContent = '❌ ' + error.message;
-    }
-}
-
-function getLocation() {
-    document.getElementById('locationStatus').textContent = '⏳ جاري جلب الموقع...';
-    
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            position => {
-                userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-                document.getElementById('locationStatus').textContent = `✅ موقعك جاهز`;
-                enterApp();
-            },
-            error => {
-                console.log('استخدام موقع افتراضي:', userLocation);
-                document.getElementById('locationStatus').textContent = `⚠️ استخدام موقع افتراضي`;
-                setTimeout(enterApp, 1000);
-            },
-            { enableHighAccuracy: false, timeout: 5000 }
-        );
-    } else {
-        document.getElementById('locationStatus').textContent = `⚠️ لا يدعم الموقع`;
+        const doc = await db.collection('users').doc(uid).get();
+        if (!doc.exists) {
+            await auth.signOut();
+            throw new UserError('الحساب غير مكتمل، أنشئ حسابًا جديدًا');
+        }
+        const data = doc.data();
+        currentUser = { uid, name: data.name, email: data.email, phone: data.phone || '' };
+        currentRole = data.role === 'سائق' ? 'سائق' : 'راكب';
         enterApp();
+    } finally {
+        entering = false;
+        document.body.classList.remove('booting');
     }
 }
 
 function enterApp() {
-    document.getElementById('authBox').style.display = 'none';
-    document.getElementById('appBox').style.display = 'block';
-    document.getElementById('userName').textContent = currentUser.name + ' (' + currentRole + ')';
-    
-    if (currentRole === 'راكب') {
-        document.getElementById('passengerNav').style.display = 'block';
-        document.getElementById('driverNav').style.display = 'none';
-        renderGroupsList();
+    document.getElementById('authPage').style.display = 'none';
+    document.getElementById('appPage').classList.add('active');
+    document.getElementById('displayName').textContent = currentUser.name;
+    document.getElementById('displayAvatar').textContent = (currentUser.name || '?').trim().charAt(0);
+    document.getElementById('displayRole').textContent = currentRole === 'سائق' ? '🚙 سائق' : '👤 راكب';
+
+    const d = new Date();
+    const y = d.getMonth() >= 8 ? d.getFullYear() : d.getFullYear() - 1;
+    document.getElementById('displayYear').textContent = `السنة الجامعية ${y}/${y + 1}`;
+
+    const isDriver = currentRole === 'سائق';
+    const driverSection = document.getElementById('driverSection');
+    const passengerSection = document.getElementById('passengerSection');
+    driverSection.style.display = isDriver ? 'block' : 'none';
+    passengerSection.style.display = isDriver ? 'none' : 'block';
+    resetTabs(isDriver ? driverSection : passengerSection);
+
+    const today = todayStr();
+    document.getElementById('rideDate').min = today;
+    document.getElementById('reqDate').min = today;
+
+    if (isDriver) {
+        loadDriverRides();
+        loadDriverRequests();
     } else {
-        document.getElementById('passengerNav').style.display = 'none';
-        document.getElementById('driverNav').style.display = 'block';
+        backToGroups();
+        loadGroupsList();
+        loadPassengerRides();
+        loadPassengerRequests();
+        loadPassengerTickets();
     }
-    
-    listenToRides();
-    listenToRequests();
 }
 
 async function logout() {
-    await auth.signOut();
+    stopAllListeners();
+    document.querySelectorAll('.toast').forEach(t => t.remove());
     currentUser = null;
     currentRole = null;
-    document.getElementById('authBox').style.display = 'block';
-    document.getElementById('appBox').style.display = 'none';
+    selectedGroup = null;
+
+    document.getElementById('authPage').style.display = 'flex';
+    document.getElementById('appPage').classList.remove('active');
+    document.getElementById('driverSection').style.display = 'none';
+    document.getElementById('passengerSection').style.display = 'none';
+
+    ['authForm', 'rideForm', 'reqForm'].forEach(id => document.getElementById(id).reset());
+    ['authError', 'createError', 'reqError'].forEach(hideError);
+    selectTripType('ذهاب', document.getElementById('tripDefault'));
+    calcTicketPrice();
+    ['dRidesList', 'dRequestsList', 'pRidesList', 'pMyRequestsList', 'groupRequests', 'pTicketsList']
+        .forEach(id => { document.getElementById(id).innerHTML = ''; });
+
+    try { await auth.signOut(); } catch (_) {}
 }
 
 auth.onAuthStateChanged(user => {
-    if (user) {
-        db.collection('users').doc(user.uid).get().then(doc => {
-            if (doc.exists) {
-                const userData = doc.data();
-                currentUser = { uid: user.uid, name: userData.name, phone: userData.phone };
-                currentRole = userData.role;
-                getLocation();
-            }
-        });
+    if (!user) {
+        document.body.classList.remove('booting');
+        return;
+    }
+    if (!currentUser && !authBusy) {
+        enterWithUser(user.uid).catch(err => showError('authError', translateError(err)));
     }
 });
 
-// ============ RIDES ============
-async function createRide() {
-    const university = document.getElementById('dUniversity').value;
-    const day = document.getElementById('dDay').value;
-    const time = document.getElementById('dTime').value;
-    const seats = parseInt(document.getElementById('dSeats').value);
-    const price = parseInt(document.getElementById('dPrice').value);
-    
-    const err = document.getElementById('dError');
-    err.textContent = '';
-
-    if (!university || !day || !time || !seats || !price) {
-        err.textContent = '❌ أكمل جميع الحقول';
-        return;
-    }
-
-    const rideDateTime = new Date(`${day}T${time}`);
-    if (rideDateTime < new Date()) {
-        err.textContent = '❌ تاريخ ماضٍ';
-        return;
-    }
-
-    try {
-        const coords = universities[university];
-        await db.collection('rides').add({
-            driverUid: currentUser.uid,
-            driver: currentUser.name,
-            phone: currentUser.phone,
-            university: university,
-            day: day,
-            time: time,
-            rideTimestamp: firebase.firestore.Timestamp.fromDate(rideDateTime),
-            totalSeats: seats,
-            seatsLeft: seats,
-            seatPrice: Math.round(price / seats),
-            passengers: [],
-            location: new firebase.firestore.GeoPoint(coords[0], coords[1]),
-            status: 'active',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        err.textContent = '✅ رحلة منشورة بنجاح';
-        document.getElementById('dUniversity').value = '';
-        document.getElementById('dDay').value = '';
-        document.getElementById('dTime').value = '';
-        document.getElementById('dSeats').value = '3';
-        document.getElementById('dPrice').value = '';
-    } catch (error) {
-        err.textContent = '❌ ' + error.message;
-    }
+// ============ NAVIGATION ============
+function switchTab(tabId, btn) {
+    const section = btn.closest('#driverSection, #passengerSection');
+    section.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    section.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+    window.scrollTo({ top: 0 });
 }
 
-function listenToRides() {
-    const now = firebase.firestore.Timestamp.fromDate(new Date());
-    db.collection('rides')
-        .where('rideTimestamp', '>=', now)
-        .where('status', '==', 'active')
-        .orderBy('rideTimestamp')
-        .onSnapshot(snapshot => {
-            rides = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            renderRides();
-            renderMyRides();
-        });
+function goTab(tabId) {
+    const btn = document.querySelector(`.tab-btn[data-page="${tabId}"]`);
+    if (btn) switchTab(tabId, btn);
 }
 
-function renderRides() {
-    const container = document.getElementById('ridesList');
-    container.innerHTML = '';
-    
-    let visible = rides.filter(r => {
-        const dist = calcDist(userLocation.lat, userLocation.lng, r.location._lat, r.location._lng);
-        return dist <= 1000 && r.seatsLeft > 0;
-    });
-    
-    if (visible.length === 0) {
-        container.innerHTML = '<div class="empty">لا توجد رحلات قريبة</div>';
-        return;
-    }
-    
-    visible.forEach(r => {
-        const dist = calcDist(userLocation.lat, userLocation.lng, r.location._lat, r.location._lng);
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-            <span class="badge">${r.seatsLeft}/${r.totalSeats}</span><br>
-            <b>${r.university}</b><br>
-            <b>الوقت:</b> ${r.day} ${r.time}<br>
-            <b>السعر:</b> ${r.seatPrice} دج/المقعد<br>
-            <b>السائق:</b> ${r.driver} (${r.phone})<br>
-            <b>المسافة:</b> ${dist < 1000 ? Math.round(dist) + 'م' : (dist/1000).toFixed(1) + 'كم'}
-        `;
-        
-        const btn = document.createElement('button');
-        btn.textContent = 'احجز مقعد';
-        btn.style.marginTop = '0.5rem';
-        btn.onclick = () => bookRide(r.id);
-        card.appendChild(btn);
-        
-        container.appendChild(card);
-    });
+function resetTabs(section) {
+    const first = section.querySelector('.tab-btn');
+    switchTab(first.dataset.page, first);
 }
 
-async function bookRide(rideId) {
-    try {
-        const ref = db.collection('rides').doc(rideId);
-        const doc = await ref.get();
-        const r = doc.data();
-        
-        if (r.passengers.some(p => p.uid === currentUser.uid)) {
-            alert('أنت حاجز بالفعل');
-            return;
+function calcTicketPrice() {
+    const seats = parseInt(document.getElementById('seats').value) || 1;
+    const total = parseInt(document.getElementById('totalPrice').value) || 0;
+    document.getElementById('ticketPrice').value = total > 0 ? Math.round(total / seats) + ' دج' : '';
+}
+
+// ============ DRIVER ============
+async function createRide(e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = form.querySelector('[type="submit"]');
+    const destination = document.getElementById('destination').value;
+    const date = document.getElementById('rideDate').value;
+    const time = document.getElementById('rideTime').value;
+    const seats = parseInt(document.getElementById('seats').value);
+    const price = parseInt(document.getElementById('totalPrice').value);
+    hideError('createError');
+
+    if (!UNIVERSITIES.includes(destination)) return showError('createError', 'اختر الجامعة');
+    if (!date || !time) return showError('createError', 'حدّد التاريخ والساعة');
+    if (rideTs(date, time) < Date.now()) return showError('createError', 'لا يمكن إنشاء رحلة في الماضي');
+    if (!(seats >= 1 && seats <= 8)) return showError('createError', 'عدد المقاعد غير صحيح');
+    if (!(price > 0)) return showError('createError', 'أدخل السعر الكلي');
+
+    await withBusy(btn, async () => {
+        try {
+            await db.collection('rides').add({
+                driverUid: currentUser.uid,
+                driver: currentUser.name,
+                driverPhone: currentUser.phone || '',
+                destination,
+                tripType: selectedTripType,
+                date, time, seats,
+                seatsLeft: seats,
+                totalPrice: price,
+                ticketPrice: Math.round(price / seats),
+                passengers: [],
+                status: 'active',
+                createdAt: TS()
+            });
+            form.reset();
+            selectTripType('ذهاب', document.getElementById('tripDefault'));
+            calcTicketPrice();
+            toast('✅ تم نشر الرحلة');
+            goTab('dMyRides');
+        } catch (error) {
+            showError('createError', translateError(error));
         }
-        
-        if (r.seatsLeft <= 0) {
-            alert('ما فيه مقاعد');
-            return;
-        }
-        
-        await ref.update({
-            passengers: firebase.firestore.FieldValue.arrayUnion({
-                uid: currentUser.uid,
-                name: currentUser.name,
-                phone: currentUser.phone
-            }),
-            seatsLeft: r.seatsLeft - 1
-        });
-        
-        alert('✅ تم الحجز بنجاح');
-    } catch (error) {
-        alert('❌ ' + error.message);
-    }
-}
-
-function renderMyRides() {
-    const container = document.getElementById('myRidesList');
-    container.innerHTML = '';
-    
-    const myRides = rides.filter(r => r.driverUid === currentUser.uid);
-    
-    if (myRides.length === 0) {
-        container.innerHTML = '<div class="empty">لا توجد رحلات</div>';
-        return;
-    }
-    
-    myRides.forEach(r => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-            <span class="badge">${r.seatsLeft}/${r.totalSeats}</span><br>
-            <b>${r.university}</b> | ${r.day} ${r.time}<br>
-            <b>السعر:</b> ${r.seatPrice} دج/المقعد<br>
-            <b>الركاب:</b> ${r.passengers.map(p => p.name + ' (' + p.phone + ')').join(', ') || 'لا أحد بعد'}
-        `;
-        container.appendChild(card);
     });
 }
 
-// ============ GROUPS & REQUESTS ============
-function renderGroupsList() {
-    const container = document.getElementById('groupsList');
-    container.innerHTML = '';
-    
-    Object.keys(universities).forEach(uni => {
+function loadDriverRides() {
+    setLoading('dRidesList');
+    const q = db.collection('rides')
+        .where('driverUid', '==', currentUser.uid)
+        .where('status', '==', 'active');
+    listen('driverRides', q, snap => {
+        const rides = docsOf(snap).filter(isUpcoming).sort(byDate);
+        document.getElementById('dRidesList').innerHTML = rides.length
+            ? rides.map(r => rideCard(r)).join('')
+            : emptyHTML('🚗', 'لا توجد رحلات قادمة', 'انشر رحلة من تبويب "رحلة جديدة"');
+    });
+}
+
+function loadDriverRequests() {
+    setLoading('dRequestsList');
+    listen('driverRequests', db.collection('requests').where('status', '==', 'waiting'), snap => {
+        const reqs = docsOf(snap)
+            .filter(isUpcoming)
+            .filter(r => (r.members || []).length > 0)
+            .sort(byDate);
+        document.getElementById('dRequestsList').innerHTML = reqs.length
+            ? reqs.map(r => requestCard(r, {
+                action: `<button class="btn" onclick="acceptRequest('${r.id}', this)">تولَّ الطلب</button>`
+            })).join('')
+            : emptyHTML('📋', 'لا توجد طلبات حاليًا', 'ستظهر هنا طلبات الطلاب عند إنشائها');
+    });
+}
+
+async function acceptRequest(requestId, btn) {
+    await withBusy(btn, async () => {
+        try {
+            const reqRef = db.collection('requests').doc(requestId);
+            const first = await reqRef.get();
+            if (!first.exists || first.data().status !== 'waiting') throw new UserError('هذا الطلب لم يعد متاحًا');
+            const count = (first.data().members || []).length;
+
+            const input = prompt(`كم راكبًا ستأخذ؟ (من 1 إلى ${count})`, String(count));
+            if (input === null) return;
+            const take = parseInt(input, 10);
+            if (!Number.isInteger(take) || take < 1 || take > count) throw new UserError(`أدخل رقمًا بين 1 و ${count}`);
+
+            await db.runTransaction(async tx => {
+                const snap = await tx.get(reqRef);
+                if (!snap.exists) throw new UserError('هذا الطلب لم يعد موجودًا');
+                const req = snap.data();
+                if (req.status !== 'waiting') throw new UserError('تولّى سائق آخر هذا الطلب');
+                if (!isUpcoming(req)) throw new UserError('انتهى موعد هذا الطلب');
+                const members = req.members || [];
+                if (take > members.length) throw new UserError('تغيّر عدد الأعضاء، أعد المحاولة');
+
+                const needed = Math.max(parseInt(req.seatsNeeded) || 0, members.length);
+                const perPerson = Math.round((Number(req.budget) || 0) / needed);
+                const taken = members.slice(0, take);
+                const remaining = members.slice(take);
+
+                const rideRef = db.collection('rides').doc();
+                tx.set(rideRef, {
+                    driverUid: currentUser.uid,
+                    driver: currentUser.name,
+                    driverPhone: currentUser.phone || '',
+                    destination: req.university,
+                    tripType: 'من طلب',
+                    date: req.date,
+                    time: req.time,
+                    seats: take,
+                    seatsLeft: 0,
+                    totalPrice: perPerson * take,
+                    ticketPrice: perPerson,
+                    passengers: taken,
+                    requestId,
+                    status: 'active',
+                    createdAt: TS()
+                });
+
+                taken.forEach(m => {
+                    tx.set(db.collection('tickets').doc(), {
+                        passengerUid: m.uid,
+                        driver: currentUser.name,
+                        driverPhone: currentUser.phone || '',
+                        destination: req.university,
+                        date: req.date,
+                        time: req.time,
+                        price: perPerson,
+                        rideId: rideRef.id,
+                        status: 'active',
+                        createdAt: TS()
+                    });
+                });
+
+                if (remaining.length === 0) {
+                    tx.update(reqRef, { status: 'completed', acceptedBy: currentUser.uid });
+                } else {
+                    const stillNeeded = Math.max(needed - take, remaining.length);
+                    tx.update(reqRef, {
+                        members: remaining,
+                        memberUids: remaining.map(m => m.uid),
+                        seatsNeeded: stillNeeded,
+                        budget: perPerson * stillNeeded
+                    });
+                }
+            });
+
+            toast('✅ تولّيت الطلب، الرحلة في "رحلاتي"');
+        } catch (error) {
+            toast('❌ ' + translateError(error), true);
+        }
+    });
+}
+
+// ============ PASSENGER ============
+function loadPassengerRides() {
+    setLoading('pRidesList');
+    listen('passengerRides', db.collection('rides').where('status', '==', 'active'), snap => {
+        const uid = currentUser.uid;
+        const rides = docsOf(snap)
+            .filter(isUpcoming)
+            .filter(r => r.driverUid !== uid)
+            .filter(r => r.seatsLeft > 0 || isBooked(r, uid))
+            .sort(byDate);
+
+        document.getElementById('pRidesList').innerHTML = rides.length
+            ? rides.map(r => rideCard(r, {
+                showDriver: true,
+                action: isBooked(r, uid)
+                    ? '<div class="booked">✓ حجزت مقعدك في هذه الرحلة</div>'
+                    : `<button class="btn btn-accent" onclick="bookRide('${r.id}', this)">احجز مقعدك</button>`
+            })).join('')
+            : emptyHTML('🔍', 'لا توجد رحلات متاحة الآن', 'جرّب إنشاء طلب من تبويب "الجامعات"');
+    });
+}
+
+async function bookRide(rideId, btn) {
+    await withBusy(btn, async () => {
+        try {
+            const ref = db.collection('rides').doc(rideId);
+            await db.runTransaction(async tx => {
+                const snap = await tx.get(ref);
+                if (!snap.exists) throw new UserError('هذه الرحلة لم تعد متاحة');
+                const r = snap.data();
+                const passengers = r.passengers || [];
+                if (r.status !== 'active' || !isUpcoming(r)) throw new UserError('هذه الرحلة لم تعد متاحة');
+                if (passengers.some(p => p.uid === currentUser.uid)) throw new UserError('لقد حجزت في هذه الرحلة مسبقًا');
+                if (!(r.seatsLeft > 0)) throw new UserError('امتلأت الرحلة');
+
+                tx.update(ref, {
+                    passengers: [...passengers, { uid: currentUser.uid, name: currentUser.name }],
+                    seatsLeft: r.seatsLeft - 1
+                });
+                tx.set(db.collection('tickets').doc(), {
+                    passengerUid: currentUser.uid,
+                    driver: r.driver,
+                    driverPhone: r.driverPhone || '',
+                    destination: r.destination,
+                    date: r.date,
+                    time: r.time,
+                    price: r.ticketPrice,
+                    rideId,
+                    status: 'active',
+                    createdAt: TS()
+                });
+            });
+            toast('✅ تم الحجز، تذكرتك في "تذاكري"');
+        } catch (error) {
+            toast('❌ ' + translateError(error), true);
+        }
+    });
+}
+
+function loadPassengerTickets() {
+    setLoading('pTicketsList');
+    listen('tickets', db.collection('tickets').where('passengerUid', '==', currentUser.uid), snap => {
+        const all = docsOf(snap);
+        const upcoming = all.filter(isUpcoming).sort(byDate);
+        const past = all.filter(t => !isUpcoming(t)).sort(byDate).reverse();
+
+        document.getElementById('pTicketsList').innerHTML = all.length
+            ? [...upcoming, ...past].map(t => {
+                const done = !isUpcoming(t);
+                return `
+                <div class="ticket ${done ? 'past' : ''}">
+                    <div class="ticket-main">
+                        <div class="ticket-label">تذكرة تنقّل جامعي</div>
+                        <div class="ticket-dest">🎓 ${esc(t.destination)}</div>
+                        <div class="ticket-grid">
+                            <div><small>التاريخ</small><span>${fmtDate(t.date)}</span></div>
+                            <div><small>الساعة</small><span>${esc(t.time)}</span></div>
+                            <div><small>السائق</small><span>${esc(t.driver)}</span></div>
+                        </div>
+                        ${t.driverPhone && !done ? `<a class="ticket-call" href="tel:${esc(t.driverPhone)}">📞 اتصل بالسائق ${esc(t.driverPhone)}</a>` : ''}
+                    </div>
+                    <div class="ticket-stub">
+                        <b>${esc(t.price)}</b>
+                        <span>دج</span>
+                        <em>${done ? 'منتهية' : 'نشطة'}</em>
+                    </div>
+                </div>`;
+            }).join('')
+            : emptyHTML('🎫', 'لا توجد تذاكر بعد', 'احجز رحلة وستظهر تذكرتك هنا');
+    });
+}
+
+const UNI_COLORS = [
+    ['var(--blue-soft)', 'var(--blue)'],
+    ['var(--coral-soft)', 'var(--coral)'],
+    ['var(--green-soft)', 'var(--green)'],
+    ['var(--yellow-soft)', 'var(--orange)']
+];
+
+function loadGroupsList() {
+    const list = document.getElementById('groupsList');
+    list.innerHTML = '';
+    UNIVERSITIES.forEach((uni, i) => {
+        const [bg, fg] = UNI_COLORS[i % UNI_COLORS.length];
         const btn = document.createElement('button');
-        btn.className = 'group-btn';
-        btn.textContent = '👥 ' + uni;
+        btn.type = 'button';
+        btn.className = 'uni-card';
+        btn.innerHTML = `
+            <div class="uni-mark" style="background:${bg};color:${fg}">${initial(uni)}</div>
+            <div class="uni-name">${esc(uni)}</div>
+            <div class="uni-hint">عرض الطلبات</div>`;
         btn.onclick = () => openGroup(uni);
-        container.appendChild(btn);
+        list.appendChild(btn);
     });
 }
 
 function openGroup(university) {
-    selectedGroupName = university;
-    document.getElementById('pGroups').classList.remove('active');
-    document.getElementById('pGroupDetail').classList.add('active');
-    document.getElementById('groupTitle').textContent = university;
-    renderGroupRequests();
+    selectedGroup = university;
+    document.getElementById('groupsList').style.display = 'none';
+    document.getElementById('groupDetail').style.display = 'block';
+    document.getElementById('groupTitle').textContent = '🎓 ' + university;
+    hideError('reqError');
+    loadGroupRequests();
 }
 
 function backToGroups() {
-    selectedGroupName = null;
-    document.getElementById('pGroupDetail').classList.remove('active');
-    document.getElementById('pGroups').classList.add('active');
+    stopListen('group');
+    selectedGroup = null;
+    document.getElementById('groupsList').style.display = 'grid';
+    document.getElementById('groupDetail').style.display = 'none';
 }
 
-function renderGroupRequests() {
-    const container = document.getElementById('groupRequests');
-    container.innerHTML = '';
-    
-    const groupReqs = requests.filter(r => r.university === selectedGroupName);
-    
-    if (groupReqs.length === 0) {
-        container.innerHTML = '<p class="status">لا توجد طلبات في هذه المجموعة</p>';
-        return;
-    }
-    
-    groupReqs.forEach(r => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-            <span class="badge">${r.members.length}/${r.seatsNeeded}</span><br>
-            <b>من:</b> ${r.organizer}<br>
-            <b>الوقت:</b> ${r.day} ${r.time}<br>
-            <b>الميزانية:</b> ${r.budget} دج
-        `;
-        
-        const isJoined = r.members.some(m => m.uid === currentUser.uid);
-        
-        if (isJoined) {
-            const span = document.createElement('span');
-            span.textContent = ' ✅ منضم';
-            span.style.color = '#27ae60';
-            span.style.marginLeft = '0.5rem';
-            card.appendChild(span);
-        } else if (r.members.length < r.seatsNeeded) {
-            const btn = document.createElement('button');
-            btn.textContent = 'انضم للمجموعة';
-            btn.style.marginTop = '0.5rem';
-            btn.onclick = () => joinRequest(r.id);
-            card.appendChild(btn);
-        }
-        
-        container.appendChild(card);
+function loadGroupRequests() {
+    setLoading('groupRequests');
+    listen('group', db.collection('requests').where('university', '==', selectedGroup), snap => {
+        const uid = currentUser.uid;
+        const reqs = docsOf(snap)
+            .filter(r => r.status === 'waiting' && isUpcoming(r))
+            .sort(byDate);
+
+        document.getElementById('groupRequests').innerHTML = reqs.length
+            ? reqs.map(r => {
+                const members = r.members || [];
+                const isJoined = members.some(m => m.uid === uid);
+                const canJoin = !isJoined && members.length < (parseInt(r.seatsNeeded) || 0);
+                let action = '';
+                if (canJoin) action = `<button class="btn btn-accent" onclick="joinRequest('${r.id}', this)">انضم للمجموعة</button>`;
+                else if (!isJoined) action = '<div class="booked muted">المجموعة مكتملة، بانتظار سائق</div>';
+                return requestCard(r, {
+                    title: 'طلب ' + r.organizer,
+                    subtitle: 'إلى ' + r.university,
+                    badge: isJoined ? '<span class="badge available">✓ منضم</span>' : '<span class="badge request">طلب مجموعة</span>',
+                    action
+                });
+            }).join('')
+            : emptyHTML('👥', 'لا توجد طلبات لهذه الجامعة', 'كن أول من ينشئ طلبًا من النموذج أدناه');
     });
 }
 
-async function createRequest() {
-    const day = document.getElementById('reqDay').value;
+async function createRequest(e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = form.querySelector('[type="submit"]');
+    const date = document.getElementById('reqDate').value;
     const time = document.getElementById('reqTime').value;
-    const seats = parseInt(document.getElementById('reqSeats').value);
+    const people = parseInt(document.getElementById('reqPeople').value);
     const budget = parseInt(document.getElementById('reqBudget').value);
-    
-    const err = document.getElementById('reqError');
-    err.textContent = '';
+    hideError('reqError');
 
-    if (!day || !time || !seats || !budget) {
-        err.textContent = '❌ أكمل جميع الحقول';
-        return;
-    }
-    
-    try {
-        const coords = universities[selectedGroupName];
-        await db.collection('requests').add({
-            university: selectedGroupName,
-            organizer: currentUser.name,
-            phone: currentUser.phone,
-            organizerUid: currentUser.uid,
-            day: day,
-            time: time,
-            seatsNeeded: seats,
-            budget: budget,
-            requestTimestamp: firebase.firestore.Timestamp.fromDate(new Date(`${day}T${time}`)),
-            members: [{ uid: currentUser.uid, name: currentUser.name, phone: currentUser.phone }],
-            location: new firebase.firestore.GeoPoint(coords[0], coords[1]),
-            status: 'waiting',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        err.textContent = '✅ طلب منشور بنجاح';
-        document.getElementById('reqDay').value = '';
-        document.getElementById('reqTime').value = '';
-        document.getElementById('reqSeats').value = '3';
-        document.getElementById('reqBudget').value = '';
-    } catch (error) {
-        err.textContent = '❌ ' + error.message;
-    }
-}
+    if (!UNIVERSITIES.includes(selectedGroup)) return showError('reqError', 'اختر الجامعة أولًا');
+    if (!date || !time) return showError('reqError', 'حدّد التاريخ والساعة');
+    if (rideTs(date, time) < Date.now()) return showError('reqError', 'لا يمكن إنشاء طلب في الماضي');
+    if (!(people >= 2 && people <= 8)) return showError('reqError', 'عدد الركاب بين 2 و 8');
+    if (!(budget > 0)) return showError('reqError', 'أدخل الميزانية');
 
-async function joinRequest(requestId) {
-    try {
-        const ref = db.collection('requests').doc(requestId);
-        const doc = await ref.get();
-        const r = doc.data();
-        
-        if (r.members.some(m => m.uid === currentUser.uid)) {
-            alert('أنت منضم بالفعل');
-            return;
-        }
-        
-        if (r.members.length >= r.seatsNeeded) {
-            alert('المجموعة امتلأت');
-            return;
-        }
-        
-        await ref.update({
-            members: firebase.firestore.FieldValue.arrayUnion({
-                uid: currentUser.uid,
-                name: currentUser.name,
-                phone: currentUser.phone
-            })
-        });
-        
-        alert('✅ تم الانضمام');
-        renderGroupRequests();
-    } catch (error) {
-        alert('❌ ' + error.message);
-    }
-}
-
-function listenToRequests() {
-    db.collection('requests').onSnapshot(snapshot => {
-        requests = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        if (currentRole === 'راكب' && selectedGroupName) {
-            renderGroupRequests();
-        } else if (currentRole === 'سائق') {
-            renderDriverRequests();
+    await withBusy(btn, async () => {
+        try {
+            await db.collection('requests').add({
+                university: selectedGroup,
+                organizer: currentUser.name,
+                organizerUid: currentUser.uid,
+                date, time,
+                seatsNeeded: people,
+                budget,
+                members: [{ uid: currentUser.uid, name: currentUser.name }],
+                memberUids: [currentUser.uid],
+                status: 'waiting',
+                createdAt: TS()
+            });
+            form.reset();
+            toast('✅ تم إنشاء الطلب، شاركه مع زملائك');
+        } catch (error) {
+            showError('reqError', translateError(error));
         }
     });
 }
 
-function renderDriverRequests() {
-    const container = document.getElementById('requestsList');
-    container.innerHTML = '';
-    
-    let visible = requests.filter(r => {
-        const dist = calcDist(userLocation.lat, userLocation.lng, r.location._lat, r.location._lng);
-        return dist <= 1000 && r.status === 'waiting';
-    });
-    
-    if (visible.length === 0) {
-        container.innerHTML = '<div class="empty">لا توجد طلبات قريبة</div>';
-        return;
-    }
-    
-    visible.forEach(r => {
-        const dist = calcDist(userLocation.lat, userLocation.lng, r.location._lat, r.location._lng);
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-            <span class="badge">${r.members.length}/${r.seatsNeeded}</span><br>
-            <b>${r.university}</b><br>
-            <b>المنظم:</b> ${r.organizer} (${r.phone})<br>
-            <b>الوقت:</b> ${r.day} ${r.time}<br>
-            <b>الميزانية:</b> ${r.budget} دج<br>
-            <b>المسافة:</b> ${dist < 1000 ? Math.round(dist) + 'م' : (dist/1000).toFixed(1) + 'كم'}
-        `;
-        
-        const btn = document.createElement('button');
-        btn.textContent = 'قبول المجموعة';
-        btn.style.background = '#27ae60';
-        btn.style.marginTop = '0.5rem';
-        btn.onclick = () => acceptRequest(r.id, r.seatsNeeded);
-        card.appendChild(btn);
-        
-        container.appendChild(card);
+async function joinRequest(requestId, btn) {
+    await withBusy(btn, async () => {
+        try {
+            const ref = db.collection('requests').doc(requestId);
+            await db.runTransaction(async tx => {
+                const snap = await tx.get(ref);
+                if (!snap.exists) throw new UserError('هذا الطلب لم يعد موجودًا');
+                const r = snap.data();
+                const members = r.members || [];
+                if (r.status !== 'waiting' || !isUpcoming(r)) throw new UserError('هذا الطلب لم يعد متاحًا');
+                if (members.some(m => m.uid === currentUser.uid)) throw new UserError('أنت منضم بالفعل');
+                if (members.length >= (parseInt(r.seatsNeeded) || 0)) throw new UserError('المجموعة امتلأت');
+
+                const memberUids = r.memberUids || members.map(m => m.uid);
+                tx.update(ref, {
+                    members: [...members, { uid: currentUser.uid, name: currentUser.name }],
+                    memberUids: [...memberUids, currentUser.uid]
+                });
+            });
+            toast('✅ انضممت للمجموعة');
+        } catch (error) {
+            toast('❌ ' + translateError(error), true);
+        }
     });
 }
 
-async function acceptRequest(requestId, seatsNeeded) {
-    const seats = prompt(`كم مقعد عندك؟ (المطلوب ${seatsNeeded})`);
-    if (!seats || parseInt(seats) < seatsNeeded) {
-        alert('عدد غير كافٍ');
-        return;
-    }
-    
-    try {
-        await db.collection('requests').doc(requestId).update({
-            driverUid: currentUser.uid,
-            driver: currentUser.name,
-            driverPhone: currentUser.phone,
-            seatsAvailable: parseInt(seats),
-            status: 'accepted'
-        });
-        
-        alert('✅ قبلت المجموعة');
-    } catch (error) {
-        alert('❌ ' + error.message);
-    }
-}
+// "طلباتي" = requests I organised + requests I joined
+function loadPassengerRequests() {
+    setLoading('pMyRequestsList');
+    const uid = currentUser.uid;
+    const parts = { org: null, mem: null };
 
-// ============ TAB SWITCHING ============
-function switchTabContent(pageId, btn) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
-    
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    const render = () => {
+        if (parts.org === null || parts.mem === null) return;
+        const byId = new Map();
+        [...parts.org, ...parts.mem].forEach(r => byId.set(r.id, r));
+        const state = r => {
+            if (r.status === 'completed') return 'done';
+            return isUpcoming(r) ? 'active' : 'expired';
+        };
+        const order = { active: 0, done: 1, expired: 2 };
+        const reqs = [...byId.values()].sort((a, b) => (order[state(a)] - order[state(b)]) || byDate(a, b));
+
+        document.getElementById('pMyRequestsList').innerHTML = reqs.length
+            ? reqs.map(r => {
+                const s = state(r);
+                const mine = r.organizerUid === uid;
+                const who = mine ? 'أنت المنظّم' : 'المنظّم: ' + r.organizer;
+                const status = { active: 'بانتظار سائق', done: 'تم تولّي الطلب', expired: 'انتهى الموعد دون سائق' }[s];
+                return requestCard(r, {
+                    subtitle: `${who} · ${status}`,
+                    hideProgress: s !== 'active',
+                    badge: s === 'active'
+                        ? '<span class="badge available">نشط</span>'
+                        : `<span class="badge done">${s === 'done' ? 'مكتمل' : 'منتهي'}</span>`
+                });
+            }).join('')
+            : emptyHTML('📝', 'لا توجد طلبات بعد', 'اختر جامعتك من تبويب "الجامعات" وأنشئ طلبًا أو انضم لطلب');
+    };
+
+    listen('myReqOrg', db.collection('requests').where('organizerUid', '==', uid), snap => {
+        parts.org = docsOf(snap);
+        render();
+    });
+    listen('myReqMem', db.collection('requests').where('memberUids', 'array-contains', uid), snap => {
+        parts.mem = docsOf(snap);
+        render();
+    });
 }
 </script>
 </body>
 </html>
-
-
