@@ -673,6 +673,84 @@
         .sheet .row-btns { margin-top: .4rem; }
         .btn-light { background: #eceff4; color: var(--ink); }
         .btn-light:hover { background: #e1e6ee; }
+
+        /* meeting point picker */
+        .point-box {
+            border: 1.5px dashed #c3cde0;
+            border-radius: 14px;
+            padding: .75rem;
+            background: #fafcff;
+            margin-bottom: .5rem;
+        }
+        .point-box.set { border-style: solid; border-color: var(--green); background: #f4fbf7; }
+        .point-val { font-size: 14px; color: var(--muted); margin-bottom: .6rem; }
+        .point-box.set .point-val { color: #0f5e3e; font-weight: 600; }
+        .point-val a { color: var(--blue); font-weight: 600; margin-right: .3rem; text-decoration: none; }
+        .point-btns { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+        .point-btns .btn-ghost { width: 100%; padding: .65rem .5rem; }
+        .btn-ghost:disabled { opacity: .6; cursor: progress; }
+
+        /* meeting point on cards */
+        .meet {
+            display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+            font-size: 13px;
+            color: var(--ink-2);
+            background: #f3f6fb;
+            border-radius: 10px;
+            padding: .45rem .65rem;
+            margin-bottom: .8rem;
+        }
+        .meet b { font-weight: 600; }
+        .meet .dist { background: var(--green-soft); color: var(--green); font-weight: 700; border-radius: 999px; padding: .05rem .5rem; font-size: 12px; }
+        .meet a { margin-right: auto; color: var(--blue); font-weight: 600; text-decoration: none; }
+
+        /* distance filter */
+        .near-bar { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .near-chip {
+            border: 1.5px solid var(--line);
+            background: #fff;
+            color: var(--ink-2);
+            border-radius: 999px;
+            padding: .35rem .8rem;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .near-chip.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+        .near-chip:disabled { opacity: .6; cursor: progress; }
+        .near-status { flex-basis: 100%; font-size: 12px; color: var(--muted); }
+
+        /* map picker */
+        .map-backdrop {
+            position: fixed; inset: 0; z-index: 160;
+            background: rgba(20,34,69,.55);
+            display: flex; align-items: flex-end; justify-content: center;
+        }
+        .map-sheet {
+            width: 100%; max-width: 640px;
+            height: 88vh;
+            background: #fff;
+            border-radius: 22px 22px 0 0;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        .map-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .9rem 16px; }
+        .map-head b { font-size: 16px; color: var(--ink); }
+        .map-head span { display: block; font-size: 12px; color: var(--muted); }
+        #pickMap { flex: 1; min-height: 200px; background: #e8edf4; direction: ltr; }
+        .map-foot {
+            display: grid; grid-template-columns: 1fr 2fr; gap: .5rem;
+            padding: .8rem 16px calc(.8rem + env(safe-area-inset-bottom));
+        }
+        .pin {
+            width: 30px; height: 30px;
+            background: var(--yellow);
+            border: 3px solid var(--ink);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            box-shadow: 0 4px 10px rgba(0,0,0,.3);
+        }
+        .leaflet-container { font-family: inherit; }
     </style>
 </head>
 <body class="booting">
@@ -842,6 +920,17 @@ setTimeout(function () { document.body.classList.remove('booting'); }, 6000);
                                 <label for="destination">الجامعة</label>
                                 <select id="destination" required></select>
                             </div>
+                            <div class="form-group span-2">
+                                <label id="ridePointTitle">نقطة الانطلاق</label>
+                                <div class="point-box" id="ridePointBox">
+                                    <div class="point-val" id="ridePointVal">لم تُحدَّد بعد</div>
+                                    <div class="point-btns">
+                                        <button type="button" class="btn-ghost" id="ridePointMe" onclick="useMyLocation('ride', this)">📍 موقعي الحالي</button>
+                                        <button type="button" class="btn-ghost" onclick="openMapPicker('ride')">🗺 على الخريطة</button>
+                                    </div>
+                                </div>
+                                <input id="ridePointText" type="text" maxlength="60" placeholder="وصف المكان (اختياري): أمام محطة البنزين…">
+                            </div>
                             <div class="form-group">
                                 <label for="rideDate">التاريخ</label>
                                 <input id="rideDate" type="date" required>
@@ -882,6 +971,7 @@ setTimeout(function () { document.body.classList.remove('booting'); }, 6000);
                     <p>مجموعات تبحث عن سائق، تولَّ ما يناسبك</p>
                 </div>
                 <div id="requestsGate" class="gate"></div>
+                <div class="near-bar" data-near="driverReqs"></div>
                 <div id="dRequestsList" class="list"></div>
             </div>
 
@@ -968,6 +1058,7 @@ setTimeout(function () { document.body.classList.remove('booting'); }, 6000);
                     <h2>رحلات متاحة</h2>
                     <p>احجز مقعدك مع طلاب متجهين لنفس الجامعة</p>
                 </div>
+                <div class="near-bar" data-near="rides"></div>
                 <div id="pRidesList" class="list"></div>
             </div>
 
@@ -991,6 +1082,7 @@ setTimeout(function () { document.body.classList.remove('booting'); }, 6000);
                         <img id="groupImg" alt="">
                         <h3 id="groupTitle" class="group-title"></h3>
                     </div>
+                    <div class="near-bar" data-near="group"></div>
                     <div id="groupRequests" class="list"></div>
 
                     <h4 class="sub-title">طلب جديد</h4>
@@ -1011,6 +1103,17 @@ setTimeout(function () { document.body.classList.remove('booting'); }, 6000);
                             <div class="form-group">
                                 <label for="reqBudget">الميزانية الكلية (دج)</label>
                                 <input id="reqBudget" type="number" min="0" placeholder="600" required>
+                            </div>
+                            <div class="form-group span-2">
+                                <label>نقطة التجمّع</label>
+                                <div class="point-box" id="reqPointBox">
+                                    <div class="point-val" id="reqPointVal">لم تُحدَّد بعد</div>
+                                    <div class="point-btns">
+                                        <button type="button" class="btn-ghost" id="reqPointMe" onclick="useMyLocation('req', this)">📍 موقعي الحالي</button>
+                                        <button type="button" class="btn-ghost" onclick="openMapPicker('req')">🗺 على الخريطة</button>
+                                    </div>
+                                </div>
+                                <input id="reqPointText" type="text" maxlength="60" placeholder="وصف المكان (اختياري): مدخل الحي الجامعي…">
                             </div>
                         </div>
                         <button type="submit" class="btn">إنشاء الطلب</button>
@@ -1061,6 +1164,15 @@ const auth = firebase.auth();
 const SEAT_FEE = 20;          // DA taken from the driver's balance for each booked seat (must match firestore.rules)
 const WELCOME_CREDIT = 200;   // DA given once, when an admin activates a driver
 const GRACE_MS = 60 * 60 * 1000; // a ride stays visible 1h after its start time
+const ANNABA = { lat: 36.9000, lng: 7.7667 };  // map opens here when no point is known
+const NEAR_OPTIONS = [
+    { r: 0, label: 'الكل' },
+    { r: 500, label: '500 م' },
+    { r: 1000, label: '1 كم' },
+    { r: 3000, label: '3 كم' }
+];
+const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 
 const UNIS = [
     { name: 'سيدي عمار', img: 'sidiamar' },
@@ -1088,6 +1200,11 @@ let entering = false;
 let myVerification = null;
 let licenseData = '';
 let payConfig = null;
+let points = { ride: null, req: null };        // meeting points chosen in the two forms
+let myPos = null;                              // { lat, lng, acc, at }
+let nearRadius = { rides: 0, driverReqs: 0, group: 0 };
+const listCache = { rides: [], driverReqs: [], group: [] };
+const listRender = {};
 
 // Error with a message meant for the user (thrown inside transactions)
 class UserError extends Error {}
@@ -1218,6 +1335,44 @@ function normPlate(p) {
     return String(p || '').replace(/[^0-9]/g, '');
 }
 
+function distanceM(a, b) {
+    const R = 6371000;
+    const toRad = x => x * Math.PI / 180;
+    const dLat = toRad(b.lat - a.lat);
+    const dLng = toRad(b.lng - a.lng);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function fmtDist(m) {
+    if (m < 1000) return `${Math.max(10, Math.round(m / 10) * 10)} م`;
+    return `${(m / 1000).toFixed(m < 10000 ? 1 : 0)} كم`;
+}
+
+function validPoint(p) {
+    return p && typeof p.lat === 'number' && typeof p.lng === 'number' && isFinite(p.lat) && isFinite(p.lng);
+}
+
+function mapsUrl(p) {
+    return `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+}
+
+// "📍 نقطة الانطلاق: … · 350 م منك · الخريطة"
+function meetHTML(item, title) {
+    if (!validPoint(item.point)) return '';
+    const dist = myPos ? `<span class="dist">${fmtDist(distanceM(myPos, item.point))} منك</span>` : '';
+    return `
+        <div class="meet">
+            <span>📍 ${esc(title)}${item.pointLabel ? ': <b>' + esc(item.pointLabel) + '</b>' : ''}</span>
+            ${dist}
+            <a href="${mapsUrl(item.point)}" target="_blank" rel="noopener">الخريطة ↗</a>
+        </div>`;
+}
+
+function pointTitle(tripType) {
+    return tripType === 'عودة' ? 'منطقة النزول' : 'نقطة الانطلاق';
+}
+
 function seatsAffordable(balance) {
     return Math.max(0, Math.floor((Number(balance) || 0) / SEAT_FEE));
 }
@@ -1326,6 +1481,7 @@ function rideCard(r, o = {}) {
                 <span class="chip ${left > 0 ? 'ok' : 'full'}">💺 ${left > 0 ? left + ' متاح' : 'ممتلئة'}</span>
             </div>
             ${seatDots(r.seats, left)}
+            ${meetHTML(r, pointTitle(r.tripType))}
             ${o.showDriver ? carHTML(r.car) : ''}
             ${footer}
             ${o.action || ''}
@@ -1351,6 +1507,7 @@ function requestCard(r, o = {}) {
                 <span class="chip">⏰ ${esc(r.time)}</span>
                 <span class="chip">≈ ${perPerson} دج للفرد</span>
             </div>
+            ${meetHTML(r, 'نقطة التجمّع')}
             ${o.hideProgress ? '' : progressHTML(count, needed)}
             ${o.action || ''}
         </div>`;
@@ -1403,6 +1560,8 @@ function selectTripType(type, btn) {
     selectedTripType = type;
     btn.parentElement.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    document.getElementById('ridePointTitle').textContent =
+        type === 'عودة' ? 'منطقة النزول (إلى أين تعود؟)' : 'نقطة الانطلاق';
 }
 
 async function handleAuth(e) {
@@ -1515,6 +1674,9 @@ function enterApp() {
     document.getElementById('reqDate').min = today;
 
     listenPayConfig();
+    renderNearBars();
+    renderPoint('ride');
+    renderPoint('req');
 
     if (isDriver) {
         listenMyProfile();
@@ -1543,6 +1705,11 @@ async function logout() {
     myVerification = null;
     payConfig = null;
     licenseData = '';
+    points = { ride: null, req: null };
+    myPos = null;
+    nearRadius = { rides: 0, driverReqs: 0, group: 0 };
+    Object.keys(listCache).forEach(k => { listCache[k] = []; });
+    document.querySelectorAll('.map-backdrop').forEach(m => m.remove());
 
     document.getElementById('authPage').style.display = 'flex';
     document.getElementById('appPage').classList.remove('active');
@@ -1883,6 +2050,7 @@ async function createRide(e) {
 
     if (!currentUser.verified) return showError('createError', 'فعّل حسابك أولًا');
     if (!UNIVERSITIES.includes(destination)) return showError('createError', 'اختر الجامعة');
+    if (!points.ride) return showError('createError', selectedTripType === 'عودة' ? 'حدّد منطقة النزول' : 'حدّد نقطة الانطلاق');
     if (!date || !time) return showError('createError', 'حدّد التاريخ والساعة');
     if (rideTs(date, time) < Date.now()) return showError('createError', 'لا يمكن إنشاء رحلة في الماضي');
     if (!(seats >= 1 && seats <= 8)) return showError('createError', 'عدد المقاعد غير صحيح');
@@ -1900,6 +2068,8 @@ async function createRide(e) {
                 car: currentUser.car || null,
                 destination,
                 tripType: selectedTripType,
+                point: points.ride,
+                pointLabel: document.getElementById('ridePointText').value.trim().slice(0, 60),
                 date, time, seats,
                 seatsLeft: seats,
                 totalPrice: price,
@@ -1912,6 +2082,7 @@ async function createRide(e) {
             form.reset();
             selectTripType('ذهاب', document.getElementById('tripDefault'));
             calcTicketPrice();
+            setPoint('ride', null);
             toast('✅ تم نشر الرحلة');
             goTab('dMyRides');
         } catch (error) {
@@ -1936,17 +2107,26 @@ function loadDriverRides() {
 function loadDriverRequests() {
     setLoading('dRequestsList');
     listen('driverRequests', db.collection('requests').where('status', '==', 'waiting'), snap => {
-        const reqs = docsOf(snap)
+        listCache.driverReqs = docsOf(snap)
             .filter(isUpcoming)
             .filter(r => (r.members || []).length > 0)
             .sort(byDate);
-        document.getElementById('dRequestsList').innerHTML = reqs.length
-            ? reqs.map(r => requestCard(r, {
-                action: `<button class="btn" onclick="acceptRequest('${r.id}', this)">تولَّ الطلب</button>`
-            })).join('')
-            : emptyHTML('📋', 'لا توجد طلبات حاليًا', 'ستظهر هنا طلبات الطلاب عند إنشائها');
+        renderDriverReqs();
     });
 }
+
+function renderDriverReqs() {
+    const all = listCache.driverReqs;
+    const reqs = nearApply('driverReqs', all);
+    document.getElementById('dRequestsList').innerHTML = reqs.length
+        ? reqs.map(r => requestCard(r, {
+            action: `<button class="btn" onclick="acceptRequest('${r.id}', this)">تولَّ الطلب</button>`
+        })).join('')
+        : all.length
+            ? nearEmptyHTML('driverReqs', 'طلبات')
+            : emptyHTML('📋', 'لا توجد طلبات حاليًا', 'ستظهر هنا طلبات الطلاب عند إنشائها');
+}
+listRender.driverReqs = renderDriverReqs;
 
 async function acceptRequest(requestId, btn) {
     await withBusy(btn, async () => {
@@ -1997,6 +2177,8 @@ async function acceptRequest(requestId, btn) {
                     car,
                     destination: req.university,
                     tripType: 'من طلب',
+                    point: validPoint(req.point) ? req.point : null,
+                    pointLabel: req.pointLabel || '',
                     date: req.date,
                     time: req.time,
                     seats: take,
@@ -2019,6 +2201,9 @@ async function acceptRequest(requestId, btn) {
                         driverPhone: currentUser.phone || '',
                         car,
                         destination: req.university,
+                        point: validPoint(req.point) ? req.point : null,
+                        pointLabel: req.pointLabel || '',
+                        tripType: 'من طلب',
                         date: req.date,
                         time: req.time,
                         price: perPerson,
@@ -2053,22 +2238,32 @@ function loadPassengerRides() {
     setLoading('pRidesList');
     listen('passengerRides', db.collection('rides').where('status', '==', 'active'), snap => {
         const uid = currentUser.uid;
-        const rides = docsOf(snap)
+        listCache.rides = docsOf(snap)
             .filter(isUpcoming)
             .filter(r => r.driverUid !== uid)
             .filter(r => r.seatsLeft > 0 || isBooked(r, uid))
             .sort(byDate);
-
-        document.getElementById('pRidesList').innerHTML = rides.length
-            ? rides.map(r => rideCard(r, {
-                showDriver: true,
-                action: isBooked(r, uid)
-                    ? '<div class="booked">✓ حجزت مقعدك في هذه الرحلة</div>'
-                    : `<button class="btn btn-accent" onclick="bookRide('${r.id}', this)">احجز مقعدك</button>`
-            })).join('')
-            : emptyHTML('🔍', 'لا توجد رحلات متاحة الآن', 'جرّب إنشاء طلب من تبويب "الجامعات"');
+        renderRides();
     });
 }
+
+function renderRides() {
+    if (!currentUser) return;
+    const uid = currentUser.uid;
+    const all = listCache.rides;
+    const rides = nearApply('rides', all);
+    document.getElementById('pRidesList').innerHTML = rides.length
+        ? rides.map(r => rideCard(r, {
+            showDriver: true,
+            action: isBooked(r, uid)
+                ? '<div class="booked">✓ حجزت مقعدك في هذه الرحلة</div>'
+                : `<button class="btn btn-accent" onclick="bookRide('${r.id}', this)">احجز مقعدك</button>`
+        })).join('')
+        : all.length
+            ? nearEmptyHTML('rides', 'رحلات')
+            : emptyHTML('🔍', 'لا توجد رحلات متاحة الآن', 'جرّب إنشاء طلب من تبويب "الجامعات"');
+}
+listRender.rides = renderRides;
 
 async function bookRide(rideId, btn) {
     await withBusy(btn, async () => {
@@ -2100,6 +2295,9 @@ async function bookRide(rideId, btn) {
                     driverPhone: r.driverPhone || '',
                     car: r.car || null,
                     destination: r.destination,
+                    point: validPoint(r.point) ? r.point : null,
+                    pointLabel: r.pointLabel || '',
+                    tripType: r.tripType || '',
                     date: r.date,
                     time: r.time,
                     price: r.ticketPrice,
@@ -2139,6 +2337,7 @@ function loadPassengerTickets() {
                             <div><small>الساعة</small><span>${esc(t.time)}</span></div>
                             <div><small>السائق</small><span>${esc(t.driver)}</span></div>
                         </div>
+                        ${validPoint(t.point) && !done ? '<div style="margin-top:.6rem">' + meetHTML(t, pointTitle(t.tripType)) + '</div>' : ''}
                         ${car.name ? `<div style="margin-top:.6rem;font-size:13px">🚗 ${esc(car.name)}${car.color ? ' · ' + esc(car.color) : ''} ${car.plate ? '<span class="plate">' + esc(car.plate) + '</span>' : ''}</div>` : ''}
                         ${t.driverPhone && !done ? `<a class="ticket-call" href="tel:${esc(t.driverPhone)}">📞 اتصل بالسائق ${esc(t.driverPhone)}</a>` : ''}
                     </div>
@@ -2208,6 +2407,7 @@ function openGroup(university) {
 
 function backToGroups() {
     stopListen('group');
+    listCache.group = [];
     selectedGroup = null;
     document.getElementById('groupsList').style.display = 'grid';
     document.getElementById('groupDetail').style.display = 'none';
@@ -2216,12 +2416,19 @@ function backToGroups() {
 function loadGroupRequests() {
     setLoading('groupRequests');
     listen('group', db.collection('requests').where('university', '==', selectedGroup), snap => {
-        const uid = currentUser.uid;
-        const reqs = docsOf(snap)
+        listCache.group = docsOf(snap)
             .filter(r => r.status === 'waiting' && isUpcoming(r))
             .sort(byDate);
+        renderGroup();
+    });
+}
 
-        document.getElementById('groupRequests').innerHTML = reqs.length
+function renderGroup() {
+    if (!currentUser || !selectedGroup) return;
+    const uid = currentUser.uid;
+    const all = listCache.group;
+    const reqs = nearApply('group', all);
+    document.getElementById('groupRequests').innerHTML = reqs.length
             ? reqs.map(r => {
                 const members = r.members || [];
                 const isJoined = members.some(m => m.uid === uid);
@@ -2236,9 +2443,11 @@ function loadGroupRequests() {
                     action
                 });
             }).join('')
-            : emptyHTML('👥', 'لا توجد طلبات لهذه الجامعة', 'كن أول من ينشئ طلبًا من النموذج أدناه');
-    });
+            : all.length
+                ? nearEmptyHTML('group', 'طلبات')
+                : emptyHTML('👥', 'لا توجد طلبات لهذه الجامعة', 'كن أول من ينشئ طلبًا من النموذج أدناه');
 }
+listRender.group = renderGroup;
 
 async function createRequest(e) {
     e.preventDefault();
@@ -2251,6 +2460,7 @@ async function createRequest(e) {
     hideError('reqError');
 
     if (!UNIVERSITIES.includes(selectedGroup)) return showError('reqError', 'اختر الجامعة أولًا');
+    if (!points.req) return showError('reqError', 'حدّد نقطة التجمّع');
     if (!date || !time) return showError('reqError', 'حدّد التاريخ والساعة');
     if (rideTs(date, time) < Date.now()) return showError('reqError', 'لا يمكن إنشاء طلب في الماضي');
     if (!(people >= 2 && people <= 8)) return showError('reqError', 'عدد الركاب بين 2 و 8');
@@ -2262,6 +2472,8 @@ async function createRequest(e) {
                 university: selectedGroup,
                 organizer: currentUser.name,
                 organizerUid: currentUser.uid,
+                point: points.req,
+                pointLabel: document.getElementById('reqPointText').value.trim().slice(0, 60),
                 date, time,
                 seatsNeeded: people,
                 budget,
@@ -2271,6 +2483,7 @@ async function createRequest(e) {
                 createdAt: TS()
             });
             form.reset();
+            setPoint('req', null);
             toast('✅ تم إنشاء الطلب، شاركه مع زملائك');
         } catch (error) {
             showError('reqError', translateError(error));
@@ -2520,6 +2733,223 @@ async function rejectTopup(id, btn) {
             toast('❌ ' + translateError(error), true);
         }
     });
+}
+
+// ============ LOCATION ============
+// Fresh, precise fix first; if the GPS is slow (indoors), fall back to a quicker approximate one
+function getPosition() {
+    const once = opts => new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, opts);
+    });
+    const save = pos => {
+        myPos = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            acc: pos.coords.accuracy || 0,
+            at: Date.now()
+        };
+        return myPos;
+    };
+    const fail = err => {
+        const msg = {
+            1: 'اسمح للتطبيق بالوصول إلى موقعك من إعدادات المتصفح',
+            2: 'تعذّر تحديد موقعك، تأكد أن GPS مفعّل',
+            3: 'انتهت مهلة تحديد الموقع، حاول مرة أخرى'
+        }[err && err.code] || 'تعذّر تحديد موقعك';
+        throw new UserError(msg);
+    };
+    if (!navigator.geolocation) return Promise.reject(new UserError('متصفحك لا يدعم تحديد الموقع'));
+    return once({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 })
+        .catch(err => {
+            if (err && err.code === 1) throw err;  // permission refused: don't retry
+            return once({ enableHighAccuracy: false, timeout: 10000, maximumAge: 120000 });
+        })
+        .then(save, fail);
+}
+
+function setPoint(kind, p, acc = 0) {
+    points[kind] = p ? { lat: Math.round(p.lat * 1e6) / 1e6, lng: Math.round(p.lng * 1e6) / 1e6 } : null;
+    renderPoint(kind, acc);
+    if (p) hideError(kind === 'ride' ? 'createError' : 'reqError');
+}
+
+function renderPoint(kind, acc = 0) {
+    const box = document.getElementById(kind + 'PointBox');
+    const val = document.getElementById(kind + 'PointVal');
+    if (!box || !val) return;
+    const p = points[kind];
+    box.classList.toggle('set', !!p);
+    if (!p) {
+        val.textContent = 'لم تُحدَّد بعد';
+        return;
+    }
+    let html = '✓ تم تحديد النقطة';
+    if (acc) html += ` <small>(دقة ±${Math.round(acc)} م)</small>`;
+    html += ` <a href="${mapsUrl(p)}" target="_blank" rel="noopener">عرض ↗</a>`;
+    if (acc > 150) html += '<br><small>الدقة ضعيفة، يُفضّل ضبط النقطة على الخريطة.</small>';
+    val.innerHTML = html;
+}
+
+async function useMyLocation(kind, btn) {
+    await withBusy(btn, async () => {
+        try {
+            const p = await getPosition();
+            setPoint(kind, p, p.acc);
+            rerenderLists();
+        } catch (e) {
+            toast('❌ ' + translateError(e), true);
+        }
+    });
+}
+
+let leafletPromise = null;
+function loadLeaflet() {
+    if (window.L && window.L.map) return Promise.resolve(window.L);
+    if (leafletPromise) return leafletPromise;
+    leafletPromise = new Promise((resolve, reject) => {
+        const css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = LEAFLET_CSS;
+        document.head.appendChild(css);
+        const js = document.createElement('script');
+        js.src = LEAFLET_JS;
+        js.onload = () => (window.L && window.L.map) ? resolve(window.L) : reject(new UserError('تعذّر تحميل الخريطة'));
+        js.onerror = () => {
+            leafletPromise = null;
+            js.remove();
+            reject(new UserError('تعذّر تحميل الخريطة، تحقق من الإنترنت'));
+        };
+        document.head.appendChild(js);
+    });
+    return leafletPromise;
+}
+
+async function openMapPicker(kind) {
+    let L;
+    try {
+        L = await loadLeaflet();
+    } catch (e) {
+        toast('❌ ' + translateError(e), true);
+        return;
+    }
+    const start = points[kind] || myPos || ANNABA;
+    const zoom = (points[kind] || myPos) ? 16 : 13;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'map-backdrop';
+    wrap.innerHTML = `
+        <div class="map-sheet">
+            <div class="map-head">
+                <div><b>حدّد النقطة</b><span>اضغط على الخريطة أو اسحب الدبوس</span></div>
+                <button type="button" class="btn-ghost" data-close>إغلاق</button>
+            </div>
+            <div id="pickMap"></div>
+            <div class="map-foot">
+                <button type="button" class="btn btn-light" data-locate>📍 موقعي</button>
+                <button type="button" class="btn" data-ok>تأكيد النقطة</button>
+            </div>
+        </div>`;
+    document.body.appendChild(wrap);
+
+    const map = L.map('pickMap', { zoomControl: true }).setView([start.lat, start.lng], zoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    const icon = L.divIcon({ className: '', html: '<div class="pin"></div>', iconSize: [30, 30], iconAnchor: [15, 36] });
+    const marker = L.marker([start.lat, start.lng], { draggable: true, icon }).addTo(map);
+    map.on('click', e => marker.setLatLng(e.latlng));
+    setTimeout(() => map.invalidateSize(), 80);
+
+    const close = () => {
+        try { map.remove(); } catch (e) {}
+        wrap.remove();
+    };
+    wrap.querySelector('[data-close]').onclick = close;
+    wrap.querySelector('[data-locate]').onclick = async ev => {
+        const b = ev.currentTarget;
+        b.disabled = true;
+        try {
+            const p = await getPosition();
+            marker.setLatLng([p.lat, p.lng]);
+            map.setView([p.lat, p.lng], 17);
+        } catch (e) {
+            toast('❌ ' + translateError(e), true);
+        } finally {
+            b.disabled = false;
+        }
+    };
+    wrap.querySelector('[data-ok]').onclick = () => {
+        const ll = marker.getLatLng();
+        setPoint(kind, { lat: ll.lat, lng: ll.lng });
+        close();
+    };
+}
+
+// ============ DISTANCE FILTER ============
+function nearApply(key, items) {
+    const r = nearRadius[key];
+    if (!r || !myPos) return items;
+    const tolerance = r + Math.min(myPos.acc || 0, 300); // GPS can be off indoors
+    return items
+        .filter(x => validPoint(x.point))
+        .map(x => ({ x, d: distanceM(myPos, x.point) }))
+        .filter(o => o.d <= tolerance)
+        .sort((a, b) => a.d - b.d)
+        .map(o => o.x);
+}
+
+function nearEmptyHTML(key, what) {
+    const opt = NEAR_OPTIONS.find(o => o.r === nearRadius[key]);
+    return emptyHTML('📍', `لا توجد ${what} في حدود ${opt ? opt.label : ''} منك`, 'وسّع المسافة أو اختر "الكل"');
+}
+
+function renderNearBars() {
+    document.querySelectorAll('[data-near]').forEach(bar => {
+        const key = bar.dataset.near;
+        const r = nearRadius[key];
+        let status;
+        if (r && myPos) status = `الأقرب أولًا · دقة موقعك ±${Math.round(myPos.acc || 0)} م · <a href="#" onclick="refreshPos(event)">تحديث موقعي</a>`;
+        else if (myPos) status = 'مرتبة حسب الموعد · اختر مسافة لعرض الأقرب إليك';
+        else status = 'اختر مسافة لعرض الأقرب إليك';
+        bar.innerHTML = NEAR_OPTIONS.map(o =>
+            `<button type="button" class="near-chip ${o.r === r ? 'active' : ''}" onclick="setNear('${key}', ${o.r}, this)">${o.label}</button>`
+        ).join('') + `<span class="near-status">${status}</span>`;
+    });
+}
+
+function rerenderLists() {
+    renderNearBars();
+    Object.keys(listRender).forEach(k => {
+        try { listRender[k](); } catch (e) {}
+    });
+}
+
+async function setNear(key, r, btn) {
+    if (r > 0 && (!myPos || Date.now() - myPos.at > 5 * 60 * 1000)) {
+        const bar = btn.parentElement;
+        bar.querySelectorAll('.near-chip').forEach(b => { b.disabled = true; });
+        try {
+            await getPosition();
+        } catch (e) {
+            toast('❌ ' + translateError(e), true);
+            renderNearBars();
+            return;
+        }
+    }
+    nearRadius[key] = r;
+    rerenderLists();
+}
+
+async function refreshPos(e) {
+    if (e) e.preventDefault();
+    try {
+        await getPosition();
+        rerenderLists();
+        toast('✅ تم تحديث موقعك');
+    } catch (err) {
+        toast('❌ ' + translateError(err), true);
+    }
 }
 
 // fill the destination list once
