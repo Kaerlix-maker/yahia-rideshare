@@ -1176,6 +1176,17 @@ const LEAFLET_SOURCES = [
     { js: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js', css: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css' },
     { js: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', css: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' }
 ];
+// map images: CARTO first (free, no key, works from any site), Esri as a backup
+const TILE_SOURCES = [
+    {
+        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        opts: { subdomains: 'abcd', maxZoom: 20, attribution: '© OpenStreetMap © CARTO' }
+    },
+    {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+        opts: { maxZoom: 19, attribution: 'Tiles © Esri' }
+    }
+];
 const IN_APP_BROWSER = /FBAN|FBAV|FB_IAB|Instagram|Messenger|Snapchat|TikTok|musical_ly|Line\//i.test(navigator.userAgent || '');
 
 const UNIS = [
@@ -2892,15 +2903,28 @@ async function openMapPicker(kind, btn) {
     document.body.appendChild(wrap);
 
     const map = L.map('pickMap', { zoomControl: true }).setView([start.lat, start.lng], zoom);
-    let tileErrors = 0;
-    const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
-    tiles.on('tileerror', () => {
-        tileErrors++;
-        if (tileErrors === 4) toast('❌ صور الخريطة لا تُحمَّل، تحقق من الإنترنت أو استعمل "موقعي الحالي"', true);
-    });
+    // if a map provider refuses (no image loads), switch to the next one automatically
+    let layer = null;
+    let warned = false;
+    const useSource = i => {
+        if (layer) { try { map.removeLayer(layer); } catch (e) {} }
+        const src = TILE_SOURCES[i];
+        let loaded = 0;
+        let errors = 0;
+        layer = L.tileLayer(src.url, src.opts).addTo(map);
+        layer.on('tileload', () => { loaded++; });
+        layer.on('tileerror', () => {
+            errors++;
+            if (loaded > 0 || errors < 3) return;
+            if (i + 1 < TILE_SOURCES.length) {
+                useSource(i + 1);
+            } else if (!warned) {
+                warned = true;
+                toast('❌ صور الخريطة لا تُحمَّل، تحقق من الإنترنت أو استعمل "موقعي الحالي"', true);
+            }
+        });
+    };
+    useSource(0);
     const icon = L.divIcon({ className: '', html: '<div class="pin"></div>', iconSize: [30, 30], iconAnchor: [15, 36] });
     const marker = L.marker([start.lat, start.lng], { draggable: true, icon }).addTo(map);
     map.on('click', e => marker.setLatLng(e.latlng));
