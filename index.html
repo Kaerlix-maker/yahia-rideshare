@@ -530,12 +530,6 @@
         .ticket-call { display: inline-block; margin-top: .6rem; font-size: 12px; font-weight: 600; color: var(--green); text-decoration: none; }
         .ride-foot b { color: var(--ink-2); font-weight: 600; }
 
-        /* fatal banner (shown when the app can't run) */
-        .fatal {
-            position: fixed; top: 0; right: 0; left: 0; z-index: 200;
-            background: var(--coral); color: #fff;
-            padding: .8rem 16px; font-size: 14px; font-weight: 600; text-align: center;
-        }
 
         /* car chip on rides & tickets */
         .car-line { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .8rem; }
@@ -683,28 +677,9 @@
 </head>
 <body class="booting">
 
-<div id="fatal" class="fatal hidden"></div>
 <script>
-// Runs before everything else: explains why the app can't start instead of showing a blank page
-(function () {
-    var shown = false;
-    function show(msg) {
-        var el = document.getElementById('fatal');
-        if (!el || shown) return;
-        shown = true;
-        el.textContent = msg;
-        el.className = 'fatal';
-        document.body.classList.remove('booting');
-    }
-    window.__fatal = show;
-    if (!/^https?:$/.test(location.protocol)) {
-        show('⚠️ افتح التطبيق من رابطه على الإنترنت (https://…) وليس من ملف محفوظ على الهاتف، فتسجيل الدخول لا يعمل من ملف.');
-    }
-    window.addEventListener('error', function (e) {
-        if (e && e.message) show('⚠️ خطأ في التطبيق: ' + e.message);
-    });
-    setTimeout(function () { document.body.classList.remove('booting'); }, 6000);
-})();
+// never leave the login screen hidden if Firebase is slow to answer
+setTimeout(function () { document.body.classList.remove('booting'); }, 6000);
 </script>
 
 <!-- AUTH PAGE -->
@@ -1071,7 +1046,8 @@ const firebaseConfig = {
 
 // Firebase SDK failed to load (no internet / blocked CDN)
 if (typeof firebase === 'undefined') {
-    window.__fatal('⚠️ تعذّر تحميل التطبيق، تحقق من اتصالك بالإنترنت ثم أعد تحميل الصفحة');
+    document.body.classList.remove('booting');
+    showError('authError', 'تعذّر تحميل التطبيق، تحقق من اتصالك بالإنترنت ثم أعد تحميل الصفحة');
     throw new Error('Firebase SDK not loaded');
 }
 
