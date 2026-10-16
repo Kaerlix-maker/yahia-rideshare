@@ -1,6 +1,6 @@
 // Yahia service worker: network-first for the app's own files only.
 // Firebase, maps and CDNs are never touched (always live).
-const CACHE = 'yahia-v1';
+const CACHE = 'yahia-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -19,7 +19,8 @@ self.addEventListener('fetch', e => {
     const url = new URL(req.url);
     if (url.origin !== self.location.origin) return;   // Firebase / tiles / CDNs: not our business
     e.respondWith(
-        fetch(req).then(res => {
+        // no-cache: always ask GitHub for the newest file (otherwise the phone may keep an old copy ~10 min)
+        fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(res => {
             if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
             return res;
         }).catch(() => caches.match(req, { ignoreSearch: true })

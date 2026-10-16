@@ -1364,7 +1364,7 @@ try { db.settings({ experimentalAutoDetectLongPolling: true }); } catch (e) {}
 const auth = firebase.auth();
 
 // ============ SETTINGS ============
-const APP_VERSION = '1.5.0';
+const APP_VERSION = '1.5.1';
 const SEAT_FEE = 20;          // DA per seat: reserved at booking, taken after the ride (must match firestore.rules)
 const SETTLE_AFTER_MS = 2 * 60 * 60 * 1000;   // the reserved fee is taken 2h after the ride starts
 const NOSHOW_FROM_MS = 30 * 60 * 1000;        // a driver can mark "no-show" from 30 min before the start
@@ -1383,14 +1383,16 @@ const LEAFLET_SOURCES = [
     { js: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', css: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' }
 ];
 // map images: CARTO first (free, no key, works from any site), Esri as a backup
+// Esri first: free, no key, works from any site. OSM as backup.
+// (CARTO was removed: it now answers with "API KEY REQUIRED" pictures instead of errors)
 const TILE_SOURCES = [
-    {
-        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-        opts: { subdomains: 'abcd', maxZoom: 20, attribution: '© OpenStreetMap © CARTO' }
-    },
     {
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
         opts: { maxZoom: 19, attribution: 'Tiles © Esri' }
+    },
+    {
+        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        opts: { maxZoom: 19, attribution: '© OpenStreetMap' }
     }
 ];
 const IN_APP_BROWSER = /FBAN|FBAV|FB_IAB|Instagram|Messenger|Snapchat|TikTok|musical_ly|Line\//i.test(navigator.userAgent || '');
