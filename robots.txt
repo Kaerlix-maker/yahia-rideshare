@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kaerlix-maker.github.io/yahia-rideshare/sitemap.xml
